@@ -33,11 +33,6 @@ export function boolean(value: unknown, name: string): boolean {
   return value;
 }
 
-export function rows(value: unknown, name: string): unknown[] {
-  if (Array.isArray(value)) return value;
-  return array(object(value, name).items, `${name}列表`);
-}
-
 export function hasOnly(value: Record<string, unknown>, allowed: readonly string[], name: string): void {
   const known = new Set(allowed);
   if (Object.keys(value).some((key) => !known.has(key))) throw new Error(`${name}包含未知字段`);

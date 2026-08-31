@@ -1,9 +1,11 @@
 import { useCallback } from "preact/hooks";
 import type { TargetedPointerEvent } from "preact";
 import { getReplayAttempts, openTrafficTool, replayTraffic } from "../api/traffic";
+import { requiresSensitiveHostConfirmation } from "../proxy";
 import type { PluginHost, ReplayAttempt, ReplayResult } from "../types";
 import { useReplayEvents, useReplayLayout, useReplayResult, useReplaySource } from "./replay-effects";
 import { useReplayState, type ReplayState } from "./replay-state";
+import { replayTargetError } from "./target";
 
 const MIN_PANE_PERCENT = 25;
 const MAX_PANE_PERCENT = 75;
@@ -60,30 +62,40 @@ export function useReplay(host: PluginHost, flowId: string, visible: boolean) {
     state.setTargetHost(attempt.target_host); state.setTargetPort(attempt.target_port);
   };
   const send = async (confirmed = false) => {
-    if (!state.source || !state.targetHost.trim() || !state.rawRequest.trim()) return;
-    state.setSending(true); state.setError(undefined); state.setNotice(undefined);
+    if (!state.source || !state.rawRequest.trim()) return;
+    state.setError(undefined); state.setNotice(undefined);
+    const validationError = replayTargetError(state.targetHost, state.targetPort);
+    if (validationError) { state.setError(validationError); return; }
+    const targetHost = state.targetHost.trim();
+    if (!confirmed && requiresSensitiveHostConfirmation({
+      sourceHost: state.source.host, targetHost, rawRequest: state.rawRequest,
+    })) {
+      state.setConfirmOpen(true); return;
+    }
+    state.setSending(true);
     try {
       const response = await replayTraffic(host, {
         sourceFlowId: state.source.flow_id, rawRequest: state.rawRequest, scheme: state.scheme,
-        targetHost: state.targetHost.trim(), targetPort: state.targetPort, confirmSensitiveHostChange: confirmed,
+        targetHost, targetPort: state.targetPort, confirmSensitiveHostChange: confirmed,
       });
       const history = includeResponseAttempt(await refreshHistory(true), response, state);
       applyLatestDraft(history, state); state.setNotice(replayNotice(response));
     } catch (reason) {
-      const detail = String(reason);
-      if (!confirmed && detail.includes("Cookie/Authorization")) state.setConfirmOpen(true);
-      else state.setError(detail);
+      state.setError(String(reason));
     } finally { state.setSending(false); }
   };
-  const openResult = () => {
+  const openResult = async () => {
     if (!state.result) return;
-    void openTrafficTool(host, {
-      toolId: "request-detail",
-      flowId: state.result.flow_id,
-      title: `${state.result.method} ${state.result.host}`,
-    });
+    state.setError(undefined);
+    try {
+      await openTrafficTool(host, {
+        toolId: "request-detail", flowId: state.result.flow_id,
+        title: `${state.result.method} ${state.result.host}`,
+      });
+    } catch (reason) { state.setError(`打开结果流量失败：${String(reason)}`); }
   };
-  return { ...state, selected, selectedIndex, selectAttempt, refreshHistory, send, resize: replayResize(state), openResult };
+  const targetValid = replayTargetError(state.targetHost, state.targetPort) === undefined;
+  return { ...state, selected, selectedIndex, targetValid, selectAttempt, refreshHistory, send, resize: replayResize(state), openResult };
 }
 
 export type ReplayModel = ReturnType<typeof useReplay>;

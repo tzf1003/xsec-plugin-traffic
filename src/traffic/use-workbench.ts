@@ -13,16 +13,33 @@ const FILTER_DELAY_MS = 250;
 function paginationActions(state: WorkbenchState) {
   const previousPage = () => {
     const target = state.previous.at(-1); if (!state.previous.length) return;
+    state.prepareListTransition();
     state.setPrevious((value) => value.slice(0, -1)); state.setCursor(target);
-    state.setPage((value) => Math.max(1, value - 1)); state.setHasNewTraffic(false);
+    state.setPage((value) => Math.max(1, value - 1));
   };
   const nextPage = () => {
-    if (!state.nextCursor) return;
-    state.setPrevious((value) => [...value, state.cursor]); state.setCursor(state.nextCursor);
-    state.setPage((value) => value + 1); state.setHasNewTraffic(false);
+    const target = state.nextCursor; if (!target) return;
+    state.prepareListTransition();
+    state.setPrevious((value) => [...value, state.cursor]); state.setCursor(target);
+    state.setPage((value) => value + 1);
   };
   const latestPage = () => { state.resetPagination(); state.setRevision((value) => value + 1); };
   return { previousPage, nextPage, latestPage };
+}
+
+function useRequestFilter(filter: FilterSettings) {
+  const search = useMemo(() => ({
+    searchTerm: filter.searchTerm,
+    searchRegex: filter.searchRegex,
+    searchCaseSensitive: filter.searchCaseSensitive,
+    searchNegative: filter.searchNegative,
+  }), [filter.searchTerm, filter.searchRegex, filter.searchCaseSensitive, filter.searchNegative]);
+  const debouncedSearch = useDebounced(search, FILTER_DELAY_MS);
+  return useMemo(() => filterInput({ ...filter, ...debouncedSearch }), [
+    debouncedSearch, filter.onlyInScope, filter.hideWithoutResponse, filter.onlyParameterized,
+    filter.mimeCategories, filter.statusClasses, filter.sources, filter.showOnlyExtensionsEnabled,
+    filter.showOnlyExtensionsText, filter.hideExtensionsEnabled, filter.hideExtensionsText,
+  ]);
 }
 
 function listResize(state: WorkbenchState) {
@@ -40,8 +57,7 @@ function listResize(state: WorkbenchState) {
 
 export function useWorkbench(host: PluginHost, context: WorkspaceToolContext) {
   const state = useWorkbenchState();
-  const debouncedFilter = useDebounced(state.filter, FILTER_DELAY_MS);
-  const requestFilter = useMemo(() => filterInput(debouncedFilter), [debouncedFilter]);
+  const requestFilter = useRequestFilter(state.filter);
   const applyFilter = useCallback((value: FilterSettings) => {
     state.setFilter(value); state.resetPagination();
   }, [state.resetPagination]);
@@ -51,13 +67,20 @@ export function useWorkbench(host: PluginHost, context: WorkspaceToolContext) {
   useTrafficDetailEffect({ host, visible: context.visible, state });
   useTrafficEvents({ host, visible: context.visible, state });
   const pages = paginationActions(state);
-  const openDetail = (row: TrafficSummary) => openTrafficTool(host, {
-    toolId: "request-detail", flowId: row.flow_id, title: `${row.method} ${row.host}`,
-  });
-  const openReplay = (row: TrafficSummary) => openTrafficTool(host, {
-    toolId: "traffic-replay", flowId: row.flow_id, title: `重放 ${row.method} ${row.host}`,
-  });
-  const addReference = async () => { if (state.detail) await addTrafficReference(host, state.detail.flow_id); };
+  const openTool = async (row: TrafficSummary, toolId: "request-detail" | "traffic-replay") => {
+    state.setError(null);
+    const title = toolId === "request-detail" ? `${row.method} ${row.host}` : `重放 ${row.method} ${row.host}`;
+    try { await openTrafficTool(host, { toolId, flowId: row.flow_id, title }); }
+    catch (reason) { state.setError(`打开流量工具失败：${String(reason)}`); }
+  };
+  const openDetail = (row: TrafficSummary) => { void openTool(row, "request-detail"); };
+  const openReplay = (row: TrafficSummary) => { void openTool(row, "traffic-replay"); };
+  const addReference = async () => {
+    if (!state.detail) return;
+    state.setError(null);
+    try { await addTrafficReference(host, state.detail.flow_id); }
+    catch (reason) { state.setError(`引用流量失败：${String(reason)}`); }
+  };
   return {
     ...state, ...pages, applyFilter, resizeList: listResize(state), openDetail, openReplay, addReference,
     selectedDetail: state.detail?.flow_id === state.selectedId ? state.detail : null,

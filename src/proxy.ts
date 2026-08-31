@@ -37,6 +37,23 @@ export function prettyBody(body?: string): string {
   }
 }
 
+export function requiresSensitiveHostConfirmation(options: {
+  sourceHost: string;
+  targetHost: string;
+  rawRequest: string;
+}): boolean {
+  if (options.sourceHost.toLowerCase() === options.targetHost.trim().toLowerCase()) return false;
+  const normalized = options.rawRequest.replace(/\r\n/gu, "\n");
+  const head = normalized.split("\n\n", 1)[0] ?? normalized;
+  return head.split("\n").slice(1).some((line) => {
+    if (line.startsWith(" ") || line.startsWith("\t")) return false;
+    const separator = line.indexOf(":");
+    if (separator < 0) return false;
+    const name = line.slice(0, separator).trim().toLowerCase();
+    return name === "authorization" || name === "cookie";
+  });
+}
+
 export function ensureHost(raw: string, options: {
   host: string;
   port: number | null | undefined;

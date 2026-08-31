@@ -2,6 +2,7 @@ import { flowSnapshot, responseRaw } from "../proxy";
 import type { PluginHost, WorkspaceToolContext } from "../types";
 import { Button, Dialog, EmptyState, Field, IconButton, Notice, Spinner } from "../ui/primitives";
 import { MessagePane } from "../traffic/message-pane";
+import { MAX_REPLAY_PORT, MIN_REPLAY_PORT } from "./target";
 import { useReplay } from "./use-replay";
 
 type ReplayModel = ReturnType<typeof useReplay>;
@@ -16,7 +17,7 @@ function replayResponseMeta(model: ReplayModel): string {
 }
 
 function ReplayToolbar({ model }: { model: ReplayModel }) {
-  const sendDisabled = [!model.source, !model.rawRequest.trim(), model.sending].some(Boolean);
+  const sendDisabled = [!model.source, !model.rawRequest.trim(), !model.targetValid, model.sending].some(Boolean);
   const nextDisabled = [model.selectedIndex < 0, model.selectedIndex >= model.attempts.length - 1].some(Boolean);
   const historyIndex = model.selectedIndex < 0 ? 0 : model.selectedIndex + 1;
   return <header className="replay-toolbar">
@@ -37,7 +38,7 @@ function ReplayConnection({ model }: { model: ReplayModel }) {
       return next === "https" ? 443 : 80;
     });
   };
-  return <div className="replay-targets"><Field label="协议"><select value={model.scheme} onChange={(event) => changeScheme(event.currentTarget.value)}><option value="https">HTTPS</option><option value="http">HTTP</option></select></Field><Field label="连接目标 / SNI"><input value={model.targetHost} onInput={(event) => model.setTargetHost(event.currentTarget.value)} /></Field><Field label="端口"><input type="number" min="1" max="65535" value={model.targetPort} onInput={(event) => model.setTargetPort(Number(event.currentTarget.value))} /></Field><p>HTTP Host 直接编辑下方请求报文中的 Host Header。</p></div>;
+  return <div className="replay-targets"><Field label="协议"><select value={model.scheme} onChange={(event) => changeScheme(event.currentTarget.value)}><option value="https">HTTPS</option><option value="http">HTTP</option></select></Field><Field label="连接目标 / SNI"><input value={model.targetHost} onInput={(event) => model.setTargetHost(event.currentTarget.value)} /></Field><Field label="端口"><input type="number" min={MIN_REPLAY_PORT} max={MAX_REPLAY_PORT} value={model.targetPort} onInput={(event) => model.setTargetPort(Number(event.currentTarget.value))} /></Field><p>HTTP Host 直接编辑下方请求报文中的 Host Header。</p></div>;
 }
 
 function ReplayNotices({ model }: { model: ReplayModel }) {
@@ -73,7 +74,7 @@ function ReplayExchange({ model, meta }: { model: ReplayModel; meta: string }) {
 
 function ReplayFooter({ model, meta }: { model: ReplayModel; meta: string }) {
   if (!model.result) return null;
-  return <footer className="replay-footer"><span>{meta}</span><Button tone="ghost" onClick={model.openResult}>独立打开结果流量</Button></footer>;
+  return <footer className="replay-footer"><span>{meta}</span><Button tone="ghost" onClick={() => void model.openResult()}>独立打开结果流量</Button></footer>;
 }
 
 function ReplayConfirmation({ model }: { model: ReplayModel }) {

@@ -1,16 +1,22 @@
-import type { PluginContext, PluginHost } from "./types";
+import type { PluginContext, PluginHost, WorkspaceToolContext } from "./types";
 import { EmptyState, Notice } from "./ui/primitives";
 import { DetailPage } from "./traffic/detail-page";
 import { Workbench } from "./traffic/workbench";
 import { ReplayPage } from "./replay/replay-page";
 import { SettingsPage } from "./settings/settings-page";
 
+function workspaceInstanceKey(context: WorkspaceToolContext): string {
+  const session = context.workspace.session?.session_id ?? context.workspace.binding?.sessionId ?? "unbound";
+  return `${session}:${context.tool.entityId ?? context.tool.id}`;
+}
+
 export function PluginApp({ host, context }: { host: PluginHost; context: PluginContext }) {
   if (context.kind === "settings-page") return <SettingsPage host={host} />;
-  if (context.tool.kind === "traffic") return <Workbench host={host} context={context} />;
+  const instanceKey = workspaceInstanceKey(context);
+  if (context.tool.kind === "traffic") return <Workbench key={instanceKey} host={host} context={context} />;
   const flowId = context.tool.entityId;
   if (!flowId) return <EmptyState>当前工具没有绑定流量</EmptyState>;
-  if (context.tool.kind === "request-detail") return <DetailPage host={host} flowId={flowId} />;
-  if (context.tool.kind === "traffic-replay") return <ReplayPage host={host} context={context} flowId={flowId} />;
+  if (context.tool.kind === "request-detail") return <DetailPage key={instanceKey} host={host} flowId={flowId} />;
+  if (context.tool.kind === "traffic-replay") return <ReplayPage key={instanceKey} host={host} context={context} flowId={flowId} />;
   return <Notice>{`不支持的抓包工具：${context.tool.kind}`}</Notice>;
 }

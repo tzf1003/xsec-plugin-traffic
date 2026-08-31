@@ -25,6 +25,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Verify source and generated frontend
         run: pnpm verify
+      - name: Require generated frontend to match source
+        run: git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
       - name: Require the dual plugin manifests
         run: |
           test -f plugins/com.xsec.workspace.traffic/plugin.json

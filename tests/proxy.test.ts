@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ensureHost, prettyBody, renderSection } from "../src/proxy";
+import { ensureHost, prettyBody, renderSection, requiresSensitiveHostConfirmation } from "../src/proxy";
 
 test("raw request adds an authority without replacing an existing Host", () => {
   const raw = "GET /login HTTP/1.1\r\nAccept: */*\r\n\r\n";
@@ -12,4 +12,11 @@ test("raw request adds an authority without replacing an existing Host", () => {
 test("message rendering preserves start line, headers, body and JSON pretty view", () => {
   assert.equal(renderSection({ line: "HTTP/1.1 200 OK", headers: [["Content-Type", "application/json"]], body: "{\"ok\":true}" }), "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"ok\":true}");
   assert.equal(prettyBody("{\"ok\":true}"), "{\n  \"ok\": true\n}");
+});
+
+test("replay confirmation is derived from the target and sensitive request headers", () => {
+  const raw = "GET / HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw }), true);
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "OLD.TEST", rawRequest: raw }), false);
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw.replace("Cookie", "X-Test") }), false);
 });

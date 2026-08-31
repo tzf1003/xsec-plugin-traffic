@@ -1,4 +1,4 @@
-import { parseFilterSettings } from "../filter";
+import { extensionList, parseFilterSettings } from "../filter";
 import { loggedAction } from "../logging";
 import type { CaStatus, FilterSettings, PassiveRule, PluginHost } from "../types";
 import { array, boolean, object, optionalString, string } from "./value";
@@ -26,7 +26,6 @@ function domainToSettings(value: unknown): FilterSettings {
 }
 
 function settingsToDomain(value: FilterSettings) {
-  const split = (text: string) => text.split(",").filter(Boolean);
   return {
     onlyInScope: value.onlyInScope,
     hideWithoutResponse: value.hideWithoutResponse,
@@ -37,9 +36,9 @@ function settingsToDomain(value: FilterSettings) {
     search: null,
     extensions: {
       showOnlyEnabled: value.showOnlyExtensionsEnabled,
-      showOnly: split(value.showOnlyExtensionsText),
+      showOnly: extensionList(value.showOnlyExtensionsText),
       hideEnabled: value.hideExtensionsEnabled,
-      hide: split(value.hideExtensionsText),
+      hide: extensionList(value.hideExtensionsText),
     },
   };
 }

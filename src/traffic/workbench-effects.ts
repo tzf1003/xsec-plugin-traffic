@@ -9,11 +9,14 @@ const EVENT_COALESCE_MS = 180;
 export function useSettingsEffect({ host, state }: { host: PluginHost; state: WorkbenchState }) {
   useEffect(() => {
     let active = true;
-    state.setError(null);
+    state.setError(null); state.setLoading(true);
     void loadSettings(host).then((value) => {
       if (!active) return;
       state.setDefaults(value); state.setFilter(value); state.resetPagination();
-    }).catch((reason) => { if (active) state.setError(`读取默认筛选失败：${String(reason)}`); });
+    }).catch((reason) => {
+      if (!active) return;
+      state.setError(`读取默认筛选失败：${String(reason)}`); state.setLoading(false);
+    });
     return () => { active = false; };
   }, [host, state.resetPagination, state.settingsRevision]);
 }
