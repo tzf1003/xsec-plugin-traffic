@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+import { test } from "node:test";
+
+const manifestPath = "plugins/com.xsec.workspace.traffic/plugin.json";
+const frontendPath = "plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js";
+
+test("manifest grants only the capabilities required by the restored workbench", async () => {
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const extension = manifest.extensions["com.xsec.desktop"];
+  assert.equal(manifest.version, "1.3.0");
+  assert.equal(extension.engines.pluginApi, "^1.4.0");
+  assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
+  assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });
+  assert.deepEqual(extension.frontendApi.methods["xsec.traffic.reference.add"], { capability: "workspace.composer.write", binding: "session" });
+  assert.deepEqual(extension.frontendApi.methods["xsec.workspace.tool.open"], { capability: "workspace.tool.open", binding: "context" });
+});
+
+test("manifest activates every restored surface through plugin contributions", async () => {
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const extension = manifest.extensions["com.xsec.desktop"];
+  assert.deepEqual(extension.activationEvents.sort(), [
+    "onSettingsPage:traffic",
+    "onWorkspaceTool:request-detail",
+    "onWorkspaceTool:traffic",
+    "onWorkspaceTool:traffic-replay",
+  ]);
+  assert.deepEqual(Object.keys(extension.contributes.workspaceTools).sort(), [
+    "request-detail", "traffic", "traffic-replay",
+  ]);
+  assert.equal(extension.contributes.workspaceTools.traffic.scope, "session");
+  assert.equal(extension.contributes.workspaceTools.traffic.launchable, true);
+  assert.equal(extension.contributes.workspaceTools["traffic-replay"].scope, "entity");
+  assert.equal(extension.contributes.workspaceTools["traffic-replay"].launchable, false);
+  assert.equal(extension.contributes.workspaceTools["request-detail"].scope, "entity");
+  assert.deepEqual(Object.keys(extension.contributes.settingsPages), ["traffic"]);
+});
+
+test("generated frontend is a loadable self-contained ESM controller", async () => {
+  const source = await readFile(frontendPath, "utf8");
+  assert.equal(/\bfetch\s*\(/u.test(source), false);
+  assert.equal(/https?:\/\/(?!www\.w3\.org)/u.test(source), false);
+  for (const event of [
+    "traffic.frontend.activate",
+    "traffic.frontend.mount",
+    "traffic.frontend.dispose",
+    "traffic.replay",
+    "traffic.settings.ca.rotate",
+  ]) assert.equal(source.includes(event), true, `missing development log event: ${event}`);
+  assert.equal(source.includes(".started"), true);
+  assert.equal(source.includes(".completed"), true);
+  assert.equal(source.includes(".failed"), true);
+  const module = await import(`${pathToFileURL(frontendPath).href}?test=${Date.now()}`);
+  assert.equal(typeof module.activate, "function");
+});

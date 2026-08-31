@@ -1,0 +1,34 @@
+import { useEffect, useState } from "preact/hooks";
+import { loadSettings, saveSettings } from "../api/settings";
+import type { FilterSettings, PluginHost } from "../types";
+import { Button, Notice, Spinner } from "../ui/primitives";
+import { FilterFields } from "../traffic/filter-fields";
+
+export function DefaultFilterSection({ host }: { host: PluginHost }) {
+  const [filter, setFilter] = useState<FilterSettings>();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>();
+  const [saved, setSaved] = useState(false);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    let active = true; setLoading(true); setError(undefined); setSaved(false);
+    void loadSettings(host).then((value) => { if (active) setFilter(value); })
+      .catch((reason) => { if (active) setError(`读取默认筛选失败：${String(reason)}`); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [host, revision]);
+  const save = async () => {
+    if (!filter) return;
+    setSaving(true); setError(undefined); setSaved(false);
+    try { setFilter(await saveSettings(host, filter)); setSaved(true); }
+    catch (reason) { setError(`保存默认筛选失败：${String(reason)}`); }
+    finally { setSaving(false); }
+  };
+  return <section className="settings-section"><header><div><h2>默认过滤</h2><p>用于之后新打开的抓包流量工作台。</p></div>{filter ? <Button tone="primary" disabled={saving} onClick={() => void save()}>{saving ? "保存中…" : "保存默认过滤"}</Button> : null}</header>
+    {loading ? <Spinner label="正在读取默认过滤…" /> : null}
+    {error ? <Notice action={<Button onClick={() => setRevision((value) => value + 1)}>重新读取</Button>}>{error}</Notice> : null}
+    {saved ? <Notice tone="success" onClose={() => setSaved(false)}>默认过滤已保存</Notice> : null}
+    {filter ? <FilterFields value={filter} onChange={(value) => { setFilter(value); setSaved(false); }} includeSearch={false} className="settings-filter-grid" /> : null}
+  </section>;
+}
