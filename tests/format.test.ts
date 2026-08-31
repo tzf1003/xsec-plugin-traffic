@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { extensionLabel, formatBytes, mimeLabel, requestTarget, sourceLabel } from "../src/format";
+import { compactParameterLabel, extensionLabel, formatBytes, mimeLabel, parameterLabel, requestTarget, sourceLabel } from "../src/format";
 import type { TrafficSummary } from "../src/types";
 
 const summary = {
@@ -21,4 +21,11 @@ test("table formatters preserve legacy sizes and request targets", () => {
   assert.equal(formatBytes(4_821), "4.7 KiB");
   assert.equal(formatBytes(187_432), "183 KiB");
   assert.equal(requestTarget(summary), "/assets?kind=script");
+});
+
+test("parameter labels distinguish missing metadata from an explicit false value", () => {
+  assert.equal(compactParameterLabel(undefined), "未知");
+  assert.equal(parameterLabel(undefined), "—");
+  assert.equal(compactParameterLabel(false), "无参");
+  assert.equal(parameterLabel(false), "无");
 });

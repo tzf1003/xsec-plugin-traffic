@@ -1,4 +1,4 @@
-import { extensionLabel, formatBytes, formatTime, hostLabel, methodClass, mimeLabel, requestTarget, sourceLabel, statusClass } from "../format";
+import { compactParameterLabel, extensionLabel, formatBytes, formatTime, hostLabel, methodClass, mimeLabel, parameterLabel, requestTarget, sourceLabel, statusClass } from "../format";
 import type { TrafficSummary } from "../types";
 
 export function FlowTable({ rows, page, selectedId, onSelect, onOpen }: {
@@ -17,8 +17,8 @@ export function FlowTable({ rows, page, selectedId, onSelect, onOpen }: {
       if (event.key === "Enter" || event.key === " ") onSelect(row.flow_id);
     }}>
       <td className="col-index">{(page - 1) * 100 + index + 1}</td><td className="col-method"><span className={`traffic-method ${methodClass(row.method)}`}>{row.method}</span></td>
-      <td className="col-request-compact"><div className="compact-primary"><span className={`traffic-method ${methodClass(row.method)}`}>{row.method}</span><strong title={host}>{host}</strong></div><span className="compact-secondary" title={target}>{target}</span><div className="compact-meta"><span>{row.has_parameters ? "有参" : "无参"}</span><span>{row.in_scope ? "范围内" : "范围外"}</span></div></td>
-      <td className="col-host" title={host}>{host}</td><td className="col-path" title={target}>{target}</td><td className="col-parameters">{row.has_parameters ? "有" : "无"}</td><td className="col-status"><span className={`traffic-status ${statusClass(row.status)}`}>{row.status ?? "无响应"}</span></td>
+      <td className="col-request-compact"><div className="compact-primary"><span className={`traffic-method ${methodClass(row.method)}`}>{row.method}</span><strong title={host}>{host}</strong></div><span className="compact-secondary" title={target}>{target}</span><div className="compact-meta"><span>{compactParameterLabel(row.has_parameters)}</span><span>{row.in_scope ? "范围内" : "范围外"}</span></div></td>
+      <td className="col-host" title={host}>{host}</td><td className="col-path" title={target}>{target}</td><td className="col-parameters">{parameterLabel(row.has_parameters)}</td><td className="col-status"><span className={`traffic-status ${statusClass(row.status)}`}>{row.status ?? "无响应"}</span></td>
       <td className="col-type-compact"><div className="compact-primary"><span>{mimeLabel(row.mime_category)}</span><span>{extensionLabel(row.file_extension)}</span></div><span className="compact-meta">来源：{sourceLabel(row.capture_source)}</span></td>
       <td className="col-mime">{mimeLabel(row.mime_category)}</td><td className="col-extension">{extensionLabel(row.file_extension)}</td><td className="col-source">{sourceLabel(row.capture_source)}</td><td className="col-scope">{row.in_scope ? "范围内" : "范围外"}</td><td className="col-duration">{row.duration_ms == null ? "—" : `${row.duration_ms} ms`}</td><td className="col-size">{formatBytes(row.response_body_size)}</td><td className="col-time">{formatTime(row.timestamp)}</td>
     </tr>;

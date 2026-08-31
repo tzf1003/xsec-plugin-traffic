@@ -46,6 +46,16 @@ export function extensionLabel(value: string | null | undefined): string {
   return `.${value.replace(/^\.+/, "")}`;
 }
 
+export function compactParameterLabel(value: boolean | undefined): string {
+  if (value === undefined) return "未知";
+  return value ? "有参" : "无参";
+}
+
+export function parameterLabel(value: boolean | undefined): string {
+  if (value === undefined) return "—";
+  return value ? "有" : "无";
+}
+
 export function methodClass(method: string): string {
   const value = method.toLowerCase();
   return ["get", "post", "delete"].includes(value) ? `method-${value}` : "method-other";
