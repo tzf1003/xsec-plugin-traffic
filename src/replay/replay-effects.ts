@@ -1,4 +1,4 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { getReplayAttempts, getTraffic } from "../api/traffic";
 import { ensureHost, requestRaw } from "../proxy";
 import type { PluginHost, ReplayAttempt, TrafficDetail } from "../types";
@@ -42,10 +42,11 @@ export function useReplayResult({ host, resultId, state }: {
   host: PluginHost; resultId: string | null | undefined; state: ReplayState;
 }) {
   useEffect(() => {
+    state.setResultError(undefined);
     if (!resultId) { state.setResult(undefined); state.setResultLoading(false); return; }
     let active = true; state.setResult(undefined); state.setResultLoading(true);
     void getTraffic(host, resultId).then((value) => { if (active) state.setResult(value); })
-      .catch((reason) => { if (active) state.setError(`读取重放结果失败：${String(reason)}`); })
+      .catch((reason) => { if (active) state.setResultError(`读取重放结果失败：${String(reason)}`); })
       .finally(() => { if (active) state.setResultLoading(false); });
     return () => { active = false; };
   }, [host, resultId]);
@@ -66,8 +67,14 @@ export function useReplayEvents(options: {
   setError: ReplayState["setError"];
 }) {
   const { host, visible, refreshHistory, setError } = options;
+  const previousVisible = useRef(visible);
   useEffect(() => {
+    const becameVisible = visible && !previousVisible.current;
+    previousVisible.current = visible;
     if (!visible) return;
+    if (becameVisible) {
+      void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
+    }
     const subscription = host.onData("xsec.traffic.persisted", () => {
       void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
     });

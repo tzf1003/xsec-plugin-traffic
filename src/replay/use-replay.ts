@@ -3,6 +3,7 @@ import type { TargetedPointerEvent } from "preact";
 import { getReplayAttempts, openTrafficTool, replayTraffic } from "../api/traffic";
 import { requiresSensitiveHostConfirmation } from "../proxy";
 import type { PluginHost, ReplayAttempt, ReplayResult } from "../types";
+import { replayFeedback } from "./feedback";
 import { useReplayEvents, useReplayLayout, useReplayResult, useReplaySource } from "./replay-effects";
 import { useReplayState, type ReplayState } from "./replay-state";
 import { replayTargetError } from "./target";
@@ -22,11 +23,6 @@ function applyLatestDraft(history: ReplayAttempt[], state: ReplayState) {
   if (!latest) return;
   state.drafts.current.set(latest.id, latest.request_raw);
   state.setRawRequest(latest.request_raw);
-}
-
-function replayNotice(response: ReplayResult): string {
-  if (response.capture_pending) return "请求已返回，响应流量仍在入库";
-  return `重放完成：HTTP ${response.result?.status ?? response.response_status ?? "—"}`;
 }
 
 function replayResize(state: ReplayState) {
@@ -79,7 +75,10 @@ export function useReplay(host: PluginHost, flowId: string, visible: boolean) {
         targetHost, targetPort: state.targetPort, confirmSensitiveHostChange: confirmed,
       });
       const history = includeResponseAttempt(await refreshHistory(true), response, state);
-      applyLatestDraft(history, state); state.setNotice(replayNotice(response));
+      applyLatestDraft(history, state);
+      const feedback = replayFeedback(response);
+      if (feedback.kind === "error") state.setError(feedback.message);
+      else state.setNotice(feedback.message);
     } catch (reason) {
       state.setError(String(reason));
     } finally { state.setSending(false); }

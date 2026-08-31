@@ -44,6 +44,7 @@ function ReplayConnection({ model }: { model: ReplayModel }) {
 function ReplayNotices({ model }: { model: ReplayModel }) {
   return <div className="replay-notice">
     {model.error ? <Notice onClose={() => model.setError(undefined)}>{model.error}</Notice> : null}
+    {model.resultError ? <Notice onClose={() => model.setResultError(undefined)}>{model.resultError}</Notice> : null}
     {model.notice ? <Notice tone="success" onClose={() => model.setNotice(undefined)}>{model.notice}</Notice> : null}
   </div>;
 }

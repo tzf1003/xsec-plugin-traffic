@@ -14,6 +14,7 @@ export function useReplayState() {
   const [resultLoading, setResultLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string>();
+  const [resultError, setResultError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [connectionOpen, setConnectionOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -29,7 +30,7 @@ export function useReplayState() {
     source, setSource, rawRequest, setRawRequest, scheme, setScheme, targetHost, setTargetHost,
     targetPort, setTargetPort, attempts, setAttempts, selectedId, setSelectedId, result, setResult,
     loading, setLoading, resultLoading, setResultLoading, sending, setSending, error, setError,
-    notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,
+    resultError, setResultError, notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,
     setPanePercent, stacked, setStacked, exchangeRef, drafts, replaceAttempts,
   };
 }
