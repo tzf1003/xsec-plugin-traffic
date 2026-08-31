@@ -30,7 +30,7 @@ export function useWorkbenchState() {
   const refreshTimer = useRef<number>();
   const prepareListTransition = useCallback(() => {
     listRequest.current += 1; detailRequest.current += 1;
-    setRows([]); setSelectedId(null); setDetail(null); setDetailLoading(false);
+    setRows([]); setSelectedId(null); setDetail(null); setDetailLoading(false); setDetailError(null);
     setNextCursor(null); setHasNewTraffic(false); setLoading(true);
   }, []);
   const resetPagination = useCallback(() => {
