@@ -1,5 +1,6 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { loadSettings, saveSettings } from "../api/settings";
+import { sameFilterSettings } from "../filter";
 import type { FilterSettings, PluginHost } from "../types";
 import { Button, Notice, Spinner } from "../ui/primitives";
 import { FilterFields } from "../traffic/filter-fields";
@@ -11,6 +12,7 @@ export function DefaultFilterSection({ host }: { host: PluginHost }) {
   const [error, setError] = useState<string>();
   const [saved, setSaved] = useState(false);
   const [revision, setRevision] = useState(0);
+  const filterRef = useRef(filter); filterRef.current = filter;
   useEffect(() => {
     let active = true; setLoading(true); setError(undefined); setSaved(false);
     void loadSettings(host).then((value) => { if (active) setFilter(value); })
@@ -20,8 +22,14 @@ export function DefaultFilterSection({ host }: { host: PluginHost }) {
   }, [host, revision]);
   const save = async () => {
     if (!filter) return;
+    const submitted = filter;
     setSaving(true); setError(undefined); setSaved(false);
-    try { setFilter(await saveSettings(host, filter)); setSaved(true); }
+    try {
+      const response = await saveSettings(host, submitted);
+      if (filterRef.current && sameFilterSettings(filterRef.current, submitted)) {
+        setFilter(response); setSaved(true);
+      }
+    }
     catch (reason) { setError(`保存默认筛选失败：${String(reason)}`); }
     finally { setSaving(false); }
   };
@@ -29,6 +37,6 @@ export function DefaultFilterSection({ host }: { host: PluginHost }) {
     {loading ? <Spinner label="正在读取默认过滤…" /> : null}
     {error ? <Notice action={<Button onClick={() => setRevision((value) => value + 1)}>重新读取</Button>}>{error}</Notice> : null}
     {saved ? <Notice tone="success" onClose={() => setSaved(false)}>默认过滤已保存</Notice> : null}
-    {filter ? <FilterFields value={filter} onChange={(value) => { setFilter(value); setSaved(false); }} includeSearch={false} className="settings-filter-grid" /> : null}
+    {filter ? <FilterFields value={filter} onChange={(value) => { filterRef.current = value; setFilter(value); setSaved(false); }} includeSearch={false} className="settings-filter-grid" /> : null}
   </section>;
 }

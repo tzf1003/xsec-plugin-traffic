@@ -6,11 +6,12 @@ import type { Disposable, PluginContext, PluginHost } from "./types";
 
 const THEME_TOKEN_NAME = /^[a-z0-9-]+$/iu;
 
-function applyTheme(root: HTMLElement | undefined, theme: Record<string, string>): void {
-  if (!root) return;
+function applyTheme(theme: Record<string, string>): void {
   for (const [name, value] of Object.entries(theme)) {
-    if (THEME_TOKEN_NAME.test(name)) root.style.setProperty(`--xsec-${name}`, value);
+    if (THEME_TOKEN_NAME.test(name)) document.documentElement.style.setProperty(`--xsec-${name}`, value);
   }
+  const mode = theme["color-mode"];
+  if (mode === "light" || mode === "dark") document.documentElement.style.colorScheme = mode;
 }
 
 function installStyles(root: HTMLElement): HTMLStyleElement {
@@ -45,7 +46,7 @@ export function activate(host: PluginHost): Controller {
         toolKind: current.kind === "workspace-tool" ? current.tool.kind : undefined,
       });
       style = installStyles(root);
-      themeSubscription = host.onTheme((theme) => applyTheme(root, theme));
+      themeSubscription = host.onTheme(applyTheme);
       draw();
     },
     update(context) {

@@ -5,6 +5,7 @@ import type { PluginHost, ReplayAttempt, TrafficDetail } from "../types";
 import type { ReplayState } from "./replay-state";
 
 const STACK_THRESHOLD = 780;
+const EVENT_COALESCE_MS = 180;
 
 function applySource(options: {
   state: ReplayState; detail: TrafficDetail; history: ReplayAttempt[];
@@ -69,15 +70,24 @@ export function useReplayEvents(options: {
   const { host, visible, refreshHistory, setError } = options;
   const previousVisible = useRef(visible);
   useEffect(() => {
+    let timer: number | undefined;
+    const reconcile = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        timer = undefined;
+        void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
+      }, EVENT_COALESCE_MS);
+    };
     const becameVisible = visible && !previousVisible.current;
     previousVisible.current = visible;
     if (!visible) return;
     if (becameVisible) {
       void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
     }
-    const subscription = host.onData("xsec.traffic.persisted", () => {
-      void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
-    });
-    return () => subscription.dispose();
+    const subscription = host.onData("xsec.traffic.persisted", reconcile);
+    return () => {
+      subscription.dispose();
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [host, refreshHistory, visible]);
 }

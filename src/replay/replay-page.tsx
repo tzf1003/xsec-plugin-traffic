@@ -50,7 +50,7 @@ function ReplayNotices({ model }: { model: ReplayModel }) {
 }
 
 function ReplayRequest({ model }: { model: ReplayModel }) {
-  return <article className="traffic-message-pane replay-request"><header><div><strong>Request</strong><span>Raw · 可编辑</span></div></header><textarea value={model.rawRequest} spellcheck={false} aria-label="可编辑的重放原始请求" onInput={(event) => {
+  return <article className="traffic-message-pane replay-request"><header><div><strong>Request</strong><span>Raw · 可编辑</span></div></header><textarea value={model.rawRequest} disabled={model.sending} spellcheck={false} aria-label="可编辑的重放原始请求" onInput={(event) => {
     model.setRawRequest(event.currentTarget.value);
     model.drafts.current.set(model.selectedId ?? "draft", event.currentTarget.value);
   }} /></article>;

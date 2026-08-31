@@ -44,12 +44,13 @@ export function useTrafficDetailEffect(options: {
 }) {
   const { host, visible, state } = options;
   useEffect(() => {
+    state.setDetailError(null);
     if (!visible || !state.selectedId) { state.setDetail(null); state.setDetailLoading(false); return; }
     const requestId = ++state.detailRequest.current;
     state.setDetail(null); state.setDetailLoading(true);
     void getTraffic(host, state.selectedId).then((value) => {
       if (state.detailRequest.current === requestId) state.setDetail(value);
-    }).catch((reason) => { if (state.detailRequest.current === requestId) state.setError(`读取流量详情失败：${String(reason)}`); })
+    }).catch((reason) => { if (state.detailRequest.current === requestId) state.setDetailError(`读取流量详情失败：${String(reason)}`); })
       .finally(() => { if (state.detailRequest.current === requestId) state.setDetailLoading(false); });
     return () => { state.detailRequest.current += 1; };
   }, [host, state.selectedId, visible]);
