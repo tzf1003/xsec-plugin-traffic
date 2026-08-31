@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "preact/hooks";
 import type { TargetedPointerEvent } from "preact";
 import { addTrafficReference, openTrafficTool } from "../api/traffic";
-import { activeFilterCount, filterInput } from "../filter";
+import { activeFilterCount, filterInput, sameFilterSettings } from "../filter";
 import type { FilterSettings, PluginHost, TrafficSummary, WorkspaceToolContext } from "../types";
 import { useDebounced } from "../use-debounced";
 import { useSettingsEffect, useTrafficDetailEffect, useTrafficEvents, useTrafficListEffect } from "./workbench-effects";
@@ -59,8 +59,9 @@ export function useWorkbench(host: PluginHost, context: WorkspaceToolContext) {
   const state = useWorkbenchState();
   const requestFilter = useRequestFilter(state.filter);
   const applyFilter = useCallback((value: FilterSettings) => {
+    if (sameFilterSettings(value, state.filter)) return;
     state.setFilter(value); state.resetPagination();
-  }, [state.resetPagination]);
+  }, [state.filter, state.resetPagination]);
   state.cursorRef.current = state.cursor;
   useSettingsEffect({ host, state });
   useTrafficListEffect({ host, visible: context.visible, state, filter: requestFilter });

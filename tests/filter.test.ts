@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { activeFilterCount, defaultFilterSettings, extensionList, filterInput, parseFilterSettings } from "../src/filter";
+import { activeFilterCount, defaultFilterSettings, extensionList, filterInput, parseFilterSettings, sameFilterSettings } from "../src/filter";
 
 test("default filter preserves the accepted HTTP history categories", () => {
   const defaults = defaultFilterSettings();
@@ -25,4 +25,12 @@ test("stored defaults fail closed on invalid enum values", () => {
   const value = defaultFilterSettings() as unknown as Record<string, unknown>;
   value.sources = ["proxy", "external"];
   assert.throws(() => parseFilterSettings(value), /来源筛选格式无效/);
+});
+
+test("filter equality distinguishes unchanged and request-changing values", () => {
+  const original = defaultFilterSettings();
+  const copy = { ...original, mimeCategories: [...original.mimeCategories] };
+  assert.equal(sameFilterSettings(original, copy), true);
+  assert.equal(sameFilterSettings(original, { ...copy, searchTerm: "api" }), false);
+  assert.equal(sameFilterSettings(original, { ...copy, sources: ["replay", "proxy"] }), false);
 });

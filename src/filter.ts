@@ -102,6 +102,23 @@ export function filterInput(settings: FilterSettings): TrafficFilter {
   };
 }
 
+function sameValues<T>(left: readonly T[], right: readonly T[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+const FILTER_SCALAR_KEYS = [
+  "version", "onlyInScope", "hideWithoutResponse", "onlyParameterized", "searchTerm",
+  "searchRegex", "searchCaseSensitive", "searchNegative", "showOnlyExtensionsEnabled",
+  "showOnlyExtensionsText", "hideExtensionsEnabled", "hideExtensionsText",
+] as const satisfies readonly (keyof FilterSettings)[];
+
+export function sameFilterSettings(left: FilterSettings, right: FilterSettings): boolean {
+  return sameValues(left.mimeCategories, right.mimeCategories)
+    && sameValues(left.statusClasses, right.statusClasses)
+    && sameValues(left.sources, right.sources)
+    && FILTER_SCALAR_KEYS.every((key) => left[key] === right[key]);
+}
+
 function isComplete<T extends string>(value: readonly T[], all: readonly T[]): boolean {
   return value.length === all.length && all.every((item) => value.includes(item));
 }
