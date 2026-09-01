@@ -2,7 +2,7 @@ export type Disposable = { dispose(): void };
 
 export type PluginHost = {
   apiVersion: number;
-  readonly context: unknown;
+  readonly context?: { readonly kind?: unknown } | null;
   request(method: string, params: unknown): Promise<unknown>;
   onContext(listener: (context: unknown) => void): Disposable;
   onTheme(listener: (theme: Record<string, string>) => void): Disposable;

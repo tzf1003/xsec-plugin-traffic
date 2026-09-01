@@ -26,11 +26,16 @@ type Controller = {
   dispose(): void;
 };
 
+function readInitialContext(host: PluginHost): PluginContext | undefined {
+  if (host.context?.kind === undefined) return undefined;
+  return parseContext(host.context);
+}
+
 export function activate(host: PluginHost): Controller {
   if (host.apiVersion !== 2) throw new Error(`不支持的 Frontend API：${host.apiVersion}`);
   console.debug("traffic.frontend.activate", { apiVersion: host.apiVersion });
   let root: HTMLElement | undefined;
-  let current: PluginContext | undefined;
+  let current = readInitialContext(host);
   let themeSubscription: Disposable | undefined;
   let style: HTMLStyleElement | undefined;
   const draw = () => {
