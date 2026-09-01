@@ -2,7 +2,7 @@ import { useEffect } from "preact/hooks";
 import { getTraffic, listTraffic } from "../api/traffic";
 import { loadSettings } from "../api/settings";
 import type { PluginHost, TrafficFilter } from "../types";
-import type { WorkbenchState } from "./workbench-state";
+import { shouldClearNewTraffic, type WorkbenchState } from "./workbench-state";
 
 const EVENT_COALESCE_MS = 180;
 
@@ -34,7 +34,7 @@ export function useTrafficListEffect(options: {
         const result = await listTraffic(host, state.cursor, filter);
         if (state.listRequest.current !== requestId) return;
         state.setRows(result.items); state.setNextCursor(result.next_cursor ?? null);
-        if (state.cursor === undefined) state.setHasNewTraffic(false);
+        if (shouldClearNewTraffic(state.cursor)) state.setHasNewTraffic(false);
         state.setSelectedId((current) => current && result.items.some((item) => item.flow_id === current) ? current : result.items[0]?.flow_id ?? null);
       } catch (reason) {
         if (state.listRequest.current === requestId) state.setListError(`读取抓包流量失败：${String(reason)}`);

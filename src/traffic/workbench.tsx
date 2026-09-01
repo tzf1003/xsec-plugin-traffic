@@ -5,6 +5,7 @@ import { Button, EmptyState, IconButton, Notice, Spinner } from "../ui/primitive
 import { FilterDialog } from "./filter-dialog";
 import { FlowTable } from "./flow-table";
 import { MessagePane } from "./message-pane";
+import { showTrafficEmpty, workbenchNotice } from "./workbench-state";
 import { useWorkbench } from "./use-workbench";
 
 type WorkbenchModel = ReturnType<typeof useWorkbench>;
@@ -30,7 +31,7 @@ function TrafficToolbar({ model }: { model: WorkbenchModel }) {
 }
 
 function TrafficError({ model }: { model: WorkbenchModel }) {
-  const message = model.listError ?? model.error;
+  const message = workbenchNotice(model.error, model.listError);
   if (!message) return null;
   const retry = model.listError
     ? <Button onClick={() => model.setRevision((value) => value + 1)}>重新读取</Button>
@@ -52,7 +53,7 @@ function TrafficAlerts({ model }: { model: WorkbenchModel }) {
 
 function TrafficTableArea({ model }: { model: WorkbenchModel }) {
   if (model.loading && !model.rows.length) return <div className="traffic-table-wrap"><Spinner label="正在读取当前会话流量…" /></div>;
-  if (!model.error && !model.rows.length) {
+  if (showTrafficEmpty(model.error, model.listError, model.rows.length)) {
     const empty = model.activeFilters ? "没有符合筛选条件的流量" : "当前会话暂无抓包流量";
     return <div className="traffic-table-wrap"><EmptyState>{empty}</EmptyState></div>;
   }

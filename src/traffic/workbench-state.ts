@@ -5,6 +5,18 @@ import type { FilterSettings, TrafficDetail, TrafficSummary } from "../types";
 
 const DEFAULT_LIST_HEIGHT = 220;
 
+export function shouldClearNewTraffic(cursor: string | undefined): boolean {
+  return cursor === undefined;
+}
+
+export function workbenchNotice(error: string | null, listError: string | null): string | null {
+  return listError ?? error;
+}
+
+export function showTrafficEmpty(error: string | null, listError: string | null, rowCount: number): boolean {
+  return !error && !listError && rowCount === 0;
+}
+
 export function useWorkbenchState() {
   const [defaults, setDefaults] = useState<FilterSettings>();
   const [filter, setFilter] = useState<FilterSettings>(defaultFilterSettings());
