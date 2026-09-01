@@ -74,6 +74,6 @@ Host RPC 读取当前会话数据，监听 `xsec.traffic.persisted` 后刷新当
 - Desktop Vitest 和 Plugin SDK 测试覆盖宿主 RPC、消息大小、会话隔离和清单契约。
 - Rust 测试覆盖解析、Host 校验、SQLite 游标/重放历史；显式启用的真实链路测试覆盖
   `Chrome → mitmdump → HTTP → SQLite / passive finding`。
-- 实际 Tauri iframe 冒烟需要 Plugin API 1.4 Desktop Host；1.3 Host 会在兼容性边界拒绝
-  该候选。Stable 晋升还必须通过 Factory 调度的四平台 Desktop Beta 制品安装、激活与持久化
+- 实际 Tauri iframe 冒烟使用 Plugin API 1.4 Desktop Host；Factory manifest 合约要求该导航
+  前端声明 `^1.3.0`，1.4 Host 满足该范围。Stable 晋升还必须通过 Factory 调度的四平台 Desktop Beta 制品安装、激活与持久化
   冒烟；该制品门禁不替代 iframe 页面交互证据。
