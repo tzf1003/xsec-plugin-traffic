@@ -31,7 +31,7 @@ export function requestTarget(row: TrafficSummary): string {
   }
 }
 
-/** Format a host and optional non-default port for display. */
+/** Format a host and optional port for display. */
 export function hostLabel(row: TrafficSummary): string {
   const normalized = row.host.includes(":") && !row.host.startsWith("[") ? `[${row.host}]` : row.host;
   return row.port ? `${normalized}:${row.port}` : normalized;
