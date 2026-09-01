@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { LatestTaskQueue } from "../src/latest-task-queue";
 
+/** Create a promise whose completion the queue test controls explicitly. */
 function deferred() {
   let resolve = () => {};
   const promise = new Promise<void>((accept) => { resolve = accept; });

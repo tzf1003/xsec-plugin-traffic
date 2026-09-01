@@ -5,6 +5,7 @@ import type { PluginHost, TrafficDetail } from "../types";
 import { Button, EmptyState, Notice, Spinner } from "../ui/primitives";
 import { MessagePane } from "./message-pane";
 
+/** Render the detail page component. */
 export function DetailPage({ host, flowId }: { host: PluginHost; flowId: string }) {
   const [detail, setDetail] = useState<TrafficDetail>();
   const [error, setError] = useState<string>();

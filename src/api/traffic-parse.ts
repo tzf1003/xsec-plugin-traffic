@@ -3,6 +3,7 @@ import { array, boolean, number, object, optionalNumber, optionalString, string 
 
 const MIMES = new Set(["html", "script", "xml", "otherText", "css", "images", "otherBinary", "unknown"]);
 
+/** Parse and validate one traffic-list row from the host response. */
 export function trafficSummary(value: unknown): TrafficSummary {
   const row = object(value, "流量记录");
   const mime = optionalString(row.mime_category, "MIME 分类");
@@ -31,6 +32,7 @@ export function trafficSummary(value: unknown): TrafficSummary {
   };
 }
 
+/** Parse and validate a cursor-paginated traffic-list response. */
 export function trafficPage(value: unknown): TrafficPage {
   const page = object(value, "流量分页");
   return {
@@ -39,11 +41,13 @@ export function trafficPage(value: unknown): TrafficPage {
   };
 }
 
+/** Parse and validate one traffic-detail response. */
 export function trafficDetail(value: unknown): TrafficDetail {
   const row = object(value, "流量详情");
   return { ...trafficSummary(row), ...(row.payload === undefined ? {} : { payload: row.payload }) };
 }
 
+/** Parse and validate one recorded replay attempt. */
 export function replayAttempt(value: unknown): ReplayAttempt {
   const row = object(value, "重放记录");
   return {
@@ -64,11 +68,13 @@ export function replayAttempt(value: unknown): ReplayAttempt {
   };
 }
 
+/** Parse and validate a replay-history response. */
 export function replayAttempts(value: unknown): ReplayAttempt[] {
   const page = object(value, "重放历史");
   return array(page.items, "重放历史列表").map(replayAttempt);
 }
 
+/** Parse and validate a replay-submission result. */
 export function replayResult(value: unknown): ReplayResult {
   const result = object(value, "重放结果");
   return {

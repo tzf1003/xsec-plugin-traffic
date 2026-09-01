@@ -11,6 +11,7 @@ const MODES: { value: Mode; label: string }[] = [
   { value: "pretty", label: "Pretty" },
 ];
 
+/** Render the message pane component. */
 export function MessagePane({ title, section, raw, meta }: {
   title: string;
   section?: FlowSection;

@@ -5,11 +5,13 @@ import { Workbench } from "./traffic/workbench";
 import { ReplayPage } from "./replay/replay-page";
 import { SettingsPage } from "./settings/settings-page";
 
+/** Derive a stable render key from the active workspace-tool context. */
 function workspaceInstanceKey(context: WorkspaceToolContext): string {
   const session = context.workspace.session?.session_id ?? context.workspace.binding?.sessionId ?? "unbound";
   return `${session}:${context.tool.entityId ?? context.tool.id}`;
 }
 
+/** Render the plugin app component. */
 export function PluginApp({ host, context }: { host: PluginHost; context: PluginContext }) {
   if (context.kind === "settings-page") return <SettingsPage host={host} />;
   const instanceKey = workspaceInstanceKey(context);

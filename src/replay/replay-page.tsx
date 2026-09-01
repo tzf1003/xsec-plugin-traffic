@@ -7,6 +7,7 @@ import { useReplay } from "./use-replay";
 
 type ReplayModel = ReturnType<typeof useReplay>;
 
+/** Format the replay response status, duration, and size summary. */
 function replayResponseMeta(model: ReplayModel): string {
   if (!model.selected) return "尚未发送";
   if (model.selected.status === "failed") return "发送失败";
@@ -16,6 +17,7 @@ function replayResponseMeta(model: ReplayModel): string {
   return `HTTP ${status}${duration}`;
 }
 
+/** Render the replay toolbar component. */
 function ReplayToolbar({ model }: { model: ReplayModel }) {
   const sendDisabled = [!model.source, !model.rawRequest.trim(), !model.targetValid, model.sending].some(Boolean);
   const nextDisabled = [model.selectedIndex < 0, model.selectedIndex >= model.attempts.length - 1].some(Boolean);
@@ -28,6 +30,7 @@ function ReplayToolbar({ model }: { model: ReplayModel }) {
   </header>;
 }
 
+/** Render the replay connection component. */
 function ReplayConnection({ model }: { model: ReplayModel }) {
   if (!model.connectionOpen) return null;
   const changeScheme = (value: string) => {
@@ -41,6 +44,7 @@ function ReplayConnection({ model }: { model: ReplayModel }) {
   return <div className="replay-targets"><Field label="协议"><select disabled={model.sending} value={model.scheme} onChange={(event) => changeScheme(event.currentTarget.value)}><option value="https">HTTPS</option><option value="http">HTTP</option></select></Field><Field label="连接目标 / SNI"><input disabled={model.sending} value={model.targetHost} onInput={(event) => model.setTargetHost(event.currentTarget.value)} /></Field><Field label="端口"><input disabled={model.sending} type="number" min={MIN_REPLAY_PORT} max={MAX_REPLAY_PORT} value={model.targetPort} onInput={(event) => model.setTargetPort(Number(event.currentTarget.value))} /></Field><p>HTTP Host 直接编辑下方请求报文中的 Host Header。</p></div>;
 }
 
+/** Render the replay notices component. */
 function ReplayNotices({ model }: { model: ReplayModel }) {
   return <div className="replay-notice">
     {model.error ? <Notice onClose={() => model.setError(undefined)}>{model.error}</Notice> : null}
@@ -50,6 +54,7 @@ function ReplayNotices({ model }: { model: ReplayModel }) {
   </div>;
 }
 
+/** Render the replay request component. */
 function ReplayRequest({ model }: { model: ReplayModel }) {
   return <article className="traffic-message-pane replay-request"><header><div><strong>Request</strong><span>Raw · 可编辑</span></div></header><textarea value={model.rawRequest} disabled={model.sending} spellcheck={false} aria-label="可编辑的重放原始请求" onInput={(event) => {
     model.setRawRequest(event.currentTarget.value);
@@ -57,6 +62,7 @@ function ReplayRequest({ model }: { model: ReplayModel }) {
   }} /></article>;
 }
 
+/** Render the replay response component. */
 function ReplayResponse({ model, meta }: { model: ReplayModel; meta: string }) {
   if (model.resultLoading) return <Spinner label="加载响应…" />;
   if (model.result) return <MessagePane title="Response" meta={meta} section={flowSnapshot(model.result.payload).response} raw={responseRaw(model.result)} />;
@@ -65,6 +71,7 @@ function ReplayResponse({ model, meta }: { model: ReplayModel; meta: string }) {
   return <article className="traffic-message-pane"><header><div><strong>Response</strong><span>{meta}</span></div></header><EmptyState>{message}</EmptyState></article>;
 }
 
+/** Render the replay exchange component. */
 function ReplayExchange({ model, meta }: { model: ReplayModel; meta: string }) {
   const orientation = model.stacked ? "horizontal" : "vertical";
   return <div ref={model.exchangeRef} className={`replay-exchange ${model.stacked ? "is-stacked" : ""}`} style={{ "--replay-request-size": `${model.panePercent}%` }}>
@@ -74,11 +81,13 @@ function ReplayExchange({ model, meta }: { model: ReplayModel; meta: string }) {
   </div>;
 }
 
+/** Render the replay footer component. */
 function ReplayFooter({ model, meta }: { model: ReplayModel; meta: string }) {
   if (!model.result) return null;
   return <footer className="replay-footer"><span>{meta}</span><Button tone="ghost" onClick={() => void model.openResult()}>独立打开结果流量</Button></footer>;
 }
 
+/** Render the replay confirmation component. */
 function ReplayConfirmation({ model }: { model: ReplayModel }) {
   if (!model.confirmOpen) return null;
   const cancel = () => { model.confirmation.current = undefined; model.setConfirmOpen(false); };
@@ -86,6 +95,7 @@ function ReplayConfirmation({ model }: { model: ReplayModel }) {
   return <Dialog title="确认向新连接目标发送敏感 Header？" width={520} onClose={cancel} footer={<><Button onClick={cancel}>取消</Button><Button tone="danger" onClick={confirm}>确认并重放</Button></>}><p>连接协议、端口或目标与原始流量不同，请求仍包含 Cookie 或 Authorization。请确认目标属于当前授权范围。</p></Dialog>;
 }
 
+/** Render the replay page component. */
 export function ReplayPage({ host, context, flowId }: { host: PluginHost; context: WorkspaceToolContext; flowId: string }) {
   const model = useReplay(host, flowId, context.visible);
   if (model.loading && !model.source) return <Spinner label="加载重放请求…" />;

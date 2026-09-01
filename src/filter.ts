@@ -10,6 +10,7 @@ export const TRAFFIC_SOURCES: readonly TrafficSource[] = ["proxy", "replay"];
 export const DEFAULT_SHOW_ONLY_EXTENSIONS = "asp,aspx,jsp,php";
 export const DEFAULT_HIDDEN_EXTENSIONS = "gif,jpg,png,ico,css,woff,woff2,ttf,svg";
 
+/** Create the accepted default filter settings for HTTP history. */
 export function defaultFilterSettings(): FilterSettings {
   return {
     version: 1,
@@ -30,6 +31,7 @@ export function defaultFilterSettings(): FilterSettings {
   };
 }
 
+/** Normalize a delimited extension field into a unique lowercase list. */
 export function extensionList(value: string): string[] {
   const unique = new Set<string>();
   for (const item of value.split(/[,，;；\s]+/u)) {
@@ -39,6 +41,7 @@ export function extensionList(value: string): string[] {
   return [...unique];
 }
 
+/** Validate an enum-array field and remove duplicate values. */
 function known<T extends string>(value: unknown, allowed: readonly T[], name: string): T[] {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || !allowed.includes(item as T))) {
     throw new Error(`${name}格式无效`);
@@ -46,16 +49,19 @@ function known<T extends string>(value: unknown, allowed: readonly T[], name: st
   return [...new Set(value)] as T[];
 }
 
+/** Validate a named filter field as a boolean. */
 function bool(value: unknown, name: string): boolean {
   if (typeof value !== "boolean") throw new Error(`${name}格式无效`);
   return value;
 }
 
+/** Validate a named filter field as text. */
 function text(value: unknown, name: string): string {
   if (typeof value !== "string") throw new Error(`${name}格式无效`);
   return value;
 }
 
+/** Parse stored filter settings and reject unsupported field values. */
 export function parseFilterSettings(value: unknown): FilterSettings {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("默认筛选格式无效");
   const row = value as Record<string, unknown>;
@@ -78,6 +84,7 @@ export function parseFilterSettings(value: unknown): FilterSettings {
   };
 }
 
+/** Convert persisted settings into a traffic-list request filter. */
 export function filterInput(settings: FilterSettings): TrafficFilter {
   const term = settings.searchTerm.trim();
   return {
@@ -102,6 +109,7 @@ export function filterInput(settings: FilterSettings): TrafficFilter {
   };
 }
 
+/** Compare ordered filter arrays without coercion. */
 function sameValues<T>(left: readonly T[], right: readonly T[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
@@ -112,6 +120,7 @@ const FILTER_SCALAR_KEYS = [
   "showOnlyExtensionsText", "hideExtensionsEnabled", "hideExtensionsText",
 ] as const satisfies readonly (keyof FilterSettings)[];
 
+/** Compare the complete persisted filter-settings contract. */
 export function sameFilterSettings(left: FilterSettings, right: FilterSettings): boolean {
   return sameValues(left.mimeCategories, right.mimeCategories)
     && sameValues(left.statusClasses, right.statusClasses)
@@ -119,10 +128,12 @@ export function sameFilterSettings(left: FilterSettings, right: FilterSettings):
     && FILTER_SCALAR_KEYS.every((key) => left[key] === right[key]);
 }
 
+/** Determine whether an enum filter contains every accepted value. */
 function isComplete<T extends string>(value: readonly T[], all: readonly T[]): boolean {
   return value.length === all.length && all.every((item) => value.includes(item));
 }
 
+/** Count filter groups that currently narrow or transform the traffic list. */
 export function activeFilterCount(value: FilterSettings): number {
   return [
     value.onlyInScope,

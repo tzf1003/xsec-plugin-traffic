@@ -13,6 +13,7 @@ export type ReplayConfirmation = {
   targetPort: number;
 };
 
+/** Resolve the selected replay attempt after history replacement. */
 export function replayHistorySelection(
   items: ReplayAttempt[], currentId: string | null, selectLatest: boolean,
 ): ReplayAttempt | undefined {
@@ -20,6 +21,7 @@ export function replayHistorySelection(
   return items.find((item) => item.id === currentId) ?? items.at(-1);
 }
 
+/** Own editable replay, history, confirmation, result, and pane-layout state. */
 export function useReplayState() {
   const [source, setSource] = useState<TrafficDetail>();
   const [sourceRevision, setSourceRevision] = useState(0);

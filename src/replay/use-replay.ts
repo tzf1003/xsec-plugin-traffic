@@ -11,11 +11,13 @@ import { replayScheme, replayTargetError } from "./target";
 const MIN_PANE_PERCENT = 25;
 const MAX_PANE_PERCENT = 75;
 
+/** Append the response attempt when replay history does not already contain it. */
 export function replayResponseHistory(history: ReplayAttempt[], response: ReplayResult) {
   if (!response.attempt || history.some((item) => item.id === response.attempt?.id)) return history;
   return [...history, response.attempt];
 }
 
+/** Add a response attempt and publish the updated selection through replay state. */
 function includeResponseAttempt(history: ReplayAttempt[], response: ReplayResult, state: ReplayState) {
   const items = replayResponseHistory(history, response);
   if (items === history) return history;
@@ -23,6 +25,7 @@ function includeResponseAttempt(history: ReplayAttempt[], response: ReplayResult
   return items;
 }
 
+/** Publish replay completion or failure feedback to the active replay state. */
 function applyReplayFeedback(response: ReplayResult, state: ReplayState) {
   const feedback = replayFeedback(response);
   if (feedback.kind === "error") state.setError(feedback.message);
@@ -30,6 +33,7 @@ function applyReplayFeedback(response: ReplayResult, state: ReplayState) {
   return feedback;
 }
 
+/** Refresh history after replay and retain a recorded attempt when refresh fails. */
 async function reconcileReplayResponse(options: {
   response: ReplayResult; state: ReplayState;
   refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
@@ -44,6 +48,7 @@ async function reconcileReplayResponse(options: {
   }
 }
 
+/** Confirm approval still matches the complete source, request, and target tuple. */
 function sameConfirmation(state: ReplayState, approved: ReplayConfirmation): boolean {
   const source = state.source;
   if (!source) return false;
@@ -57,6 +62,7 @@ function sameConfirmation(state: ReplayState, approved: ReplayConfirmation): boo
     && state.targetPort === approved.targetPort;
 }
 
+/** Select the latest recorded request as the editable replay draft. */
 function applyLatestDraft(history: ReplayAttempt[], state: ReplayState) {
   const latest = history.at(-1);
   if (!latest) return;
@@ -64,6 +70,7 @@ function applyLatestDraft(history: ReplayAttempt[], state: ReplayState) {
   state.setRawRequest(latest.request_raw);
 }
 
+/** Create a pointer handler that resizes the replay request and response panes. */
 function replayResize(state: ReplayState) {
   return (event: TargetedPointerEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -77,6 +84,7 @@ function replayResize(state: ReplayState) {
   };
 }
 
+/** Serialize history refreshes and publish only results for the active flow. */
 function useReplayHistory(options: { host: PluginHost; flowId: string; state: ReplayState }) {
   const { host, flowId, state } = options;
   const tail = useRef<Promise<void>>(Promise.resolve());
@@ -98,6 +106,7 @@ function useReplayHistory(options: { host: PluginHost; flowId: string; state: Re
   }, [flowId, host, state.replaceAttempts, state.setHistoryError]);
 }
 
+/** Validate, confirm, and submit an edited request through the host boundary. */
 async function sendReplay(options: {
   host: PluginHost; state: ReplayState; confirmed: boolean;
   refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
@@ -148,6 +157,7 @@ async function sendReplay(options: {
   finally { state.setSending(false); }
 }
 
+/** Open the captured replay result in the request-detail workspace tool. */
 async function openReplayResult(host: PluginHost, state: ReplayState) {
   if (!state.result) return;
   state.setError(undefined);
@@ -159,6 +169,7 @@ async function openReplayResult(host: PluginHost, state: ReplayState) {
   } catch (reason) { state.setError(`打开结果流量失败：${String(reason)}`); }
 }
 
+/** Compose replay loading, editing, submission, history, and layout state. */
 export function useReplay(host: PluginHost, flowId: string, visible: boolean) {
   const state = useReplayState();
   const selected = state.attempts.find((attempt) => attempt.id === state.selectedId) ?? null;
