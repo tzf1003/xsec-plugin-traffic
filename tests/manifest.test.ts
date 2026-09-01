@@ -46,6 +46,14 @@ test("manifest activates every restored surface through plugin contributions", v
 async function verifyGeneratedFrontend(): Promise<void> {
   const source = await readFile(frontendPath, "utf8");
   assert.match(source, /export\s+function\s+activate\s*\(\s*host\s*\)/u);
+  for (const annotation of [
+    "@param {object} host",
+    "@param {Element} root",
+    "@param {object} context",
+    "@returns {object}",
+  ]) {
+    assert.match(source, new RegExp(annotation.replace(/[{}]/gu, "\\$&"), "u"));
+  }
   for (const method of ["mount", "update", "dispose"]) {
     assert.match(source, new RegExp(`${method}\\([^)]*\\)\\{return controller\\.${method}\\(`, "u"));
   }
