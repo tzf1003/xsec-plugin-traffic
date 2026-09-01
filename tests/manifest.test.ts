@@ -39,6 +39,7 @@ test("manifest activates every restored surface through plugin contributions", a
 
 test("generated frontend is a loadable self-contained ESM controller", async () => {
   const source = await readFile(frontendPath, "utf8");
+  assert.match(source, /export\s+function\s+activate\s*\(\s*host\s*\)/u);
   assert.equal(/\bfetch\s*\(/u.test(source), false);
   assert.equal(/https?:\/\/(?!www\.w3\.org)/u.test(source), false);
   for (const event of [
@@ -52,5 +53,6 @@ test("generated frontend is a loadable self-contained ESM controller", async () 
   assert.equal(source.includes(".completed"), true);
   assert.equal(source.includes(".failed"), true);
   const module = await import(`${pathToFileURL(frontendPath).href}?test=${Date.now()}`);
+  assert.deepEqual(Object.keys(module), ["activate"]);
   assert.equal(typeof module.activate, "function");
 });
