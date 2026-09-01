@@ -52,6 +52,11 @@ test("generated frontend is a loadable self-contained ESM controller", async () 
   assert.equal(source.includes(".started"), true);
   assert.equal(source.includes(".completed"), true);
   assert.equal(source.includes(".failed"), true);
+  for (const message of [
+    "读取默认筛选失败",
+    "读取 MITM CA 状态失败",
+    "读取被动规则失败",
+  ]) assert.equal(source.includes(message), true, `missing UTF-8 error boundary: ${message}`);
   const module = await import(`${pathToFileURL(frontendPath).href}?test=${Date.now()}`);
   assert.deepEqual(Object.keys(module), ["activate"]);
   assert.equal(typeof module.activate, "function");
