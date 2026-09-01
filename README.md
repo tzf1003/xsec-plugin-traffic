@@ -40,51 +40,61 @@ declared plugin directory with the XSEC Desktop release tooling. The published
 source revision must include the generated frontend artifact. Factory records
 the exact Beta and Stable source revisions with the immutable release.
 
-Use the exact candidate commit for both channel checks. Source verification is
-defined by `.github/workflows/ci.yml`: Node 24.19.0, pnpm 10.34.5, and the frozen
-lockfile must reproduce the committed frontend without a diff:
+Use a new temporary clone for each candidate so verification reads only files
+from the exact candidate commit. Source verification is defined by
+`.github/workflows/ci.yml`: Node 24.19.0, pnpm 10.34.5, and the frozen lockfile
+must reproduce the committed frontend without a diff:
 
 ```bash
-git checkout --detach <candidate-source-sha>
+verification_root="$(mktemp -d)"
+git clone --no-checkout https://github.com/tzf1003/xsec-plugin-traffic.git "$verification_root"
+git -C "$verification_root" checkout --detach <candidate-source-sha>
+cd "$verification_root"
+test -z "$(git status --porcelain --untracked-files=all)"
 node --version
 pnpm --version
 pnpm install --frozen-lockfile
 pnpm verify
 git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
+test -z "$(git status --porcelain --untracked-files=all)"
 ```
 
 The version commands must report Node v24.19.0 and pnpm 10.34.5. Any install,
-verification, test, or generated-artifact diff failure rejects the source
+verification, test, generated-artifact diff, or dirty-status failure rejects the source
 revision. Record the source SHA, the successful `Plugin source validation`
 workflow run URL, and its `manifest` and `source-preflight / source-preflight`
 job URLs.
 
 The protected Factory automation described in the
 [first-party Factory runbook](https://github.com/tzf1003/xsec-plugins/blob/main/docs/first-party-plugin-factory.md)
-is the release-tooling authority. Its exact protected `xsec-plugins/main`
-revision and workflow run URL identify the tooling version; the Factory receipt
-must bind that revision to this repository's exact Beta and Stable SHAs. Stable
-passes reproduction only when the Factory source gate rebuilds the Beta
-release from the recorded Stable SHA and reports the same `releaseId` and
-artifact SHA-256. Record both source SHAs, the Factory revision and run URL,
-the release ID, and the artifact digest. Any mismatch or missing KMS/source-gate
-proof rejects promotion.
+is the release-tooling authority. Its receipt records `source_sha` as the exact
+protected `xsec-plugins/main` revision whose workflow code builds and KMS-signs
+the documents, and `marketplace_revision` as the immutable generated merge
+commit containing the published artifacts and sidecars. The receipt must also
+bind this repository's exact Beta and Stable SHAs. Stable passes reproduction
+only when the Factory source gate rebuilds the Beta release from the recorded
+Stable SHA and reports the same `releaseId` and artifact SHA-256. Record both
+plugin source SHAs, `source_sha`, `marketplace_revision`, the Factory workflow
+run URL, the release ID, and the artifact digest. Any mismatch or missing
+KMS/source-gate proof rejects promotion.
 
 Desktop acceptance follows the
 [official marketplace smoke contract](https://github.com/tzf1003/xsec-plugins/blob/main/docs/desktop-remote-marketplace-smoke-contract.md).
 The protected workflow runs the locked Desktop host command below against the
-exact Factory revision and requested channel, using a new temporary profile:
+exact immutable `marketplace_revision` and requested channel, using a new
+temporary profile:
 
 ```text
-cargo run --locked -p xsec-plugin-host --bin xsec-official-marketplace-smoke -- smoke --profile-root <fresh-runner-temp-path> --marketplace-revision <factory-revision> --channel <beta-or-stable>
+cargo run --locked -p xsec-plugin-host --bin xsec-official-marketplace-smoke -- smoke --profile-root <fresh-runner-temp-path> --marketplace-revision <marketplace_revision> --channel <beta-or-stable>
 ```
 
 The release passes only when the Linux (`ubuntu-24.04`), Windows
 (`windows-2022`), macOS ARM (`macos-15`), and macOS Intel
-(`macos-15-intel`) jobs all succeed for that revision and channel, and the
+(`macos-15-intel`) jobs all succeed for that `marketplace_revision` and channel, and the
 Factory callback records the successful matrix. Retain the workflow run URL
-and each platform's `official-marketplace-smoke-*` report artifact; a failed or
-missing platform job rejects publication.
+and each platform's `official-marketplace-smoke-*` report artifact together
+with the separately recorded `source_sha`; a failed or missing platform job
+rejects publication.
 
 Marketplace artifacts, release indexes, signatures, and Factory adoption proof
 remain in [tzf1003/xsec-plugins](https://github.com/tzf1003/xsec-plugins).
