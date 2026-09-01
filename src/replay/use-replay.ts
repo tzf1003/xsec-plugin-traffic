@@ -11,11 +11,38 @@ import { replayScheme, replayTargetError } from "./target";
 const MIN_PANE_PERCENT = 25;
 const MAX_PANE_PERCENT = 75;
 
-function includeResponseAttempt(history: ReplayAttempt[], response: ReplayResult, state: ReplayState) {
+export function replayResponseHistory(history: ReplayAttempt[], response: ReplayResult) {
   if (!response.attempt || history.some((item) => item.id === response.attempt?.id)) return history;
-  const items = [...history, response.attempt];
+  return [...history, response.attempt];
+}
+
+function includeResponseAttempt(history: ReplayAttempt[], response: ReplayResult, state: ReplayState) {
+  const items = replayResponseHistory(history, response);
+  if (items === history) return history;
   state.replaceAttempts(items, true);
   return items;
+}
+
+function applyReplayFeedback(response: ReplayResult, state: ReplayState) {
+  const feedback = replayFeedback(response);
+  if (feedback.kind === "error") state.setError(feedback.message);
+  else state.setNotice(feedback.message);
+  return feedback;
+}
+
+async function reconcileReplayResponse(options: {
+  response: ReplayResult; state: ReplayState;
+  refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
+}) {
+  const { response, state, refreshHistory } = options;
+  try {
+    const history = includeResponseAttempt(await refreshHistory(true), response, state);
+    applyLatestDraft(history, state);
+  } catch (reason) {
+    const refreshError = `刷新重放历史失败：${String(reason)}`;
+    const feedback = replayFeedback(response);
+    state.setError(feedback.kind === "error" ? `${feedback.message}；${refreshError}` : `重放操作已完成，但${refreshError}`);
+  }
 }
 
 function applyLatestDraft(history: ReplayAttempt[], state: ReplayState) {
@@ -78,11 +105,12 @@ async function sendReplay(options: {
       sourceFlowId: state.source.flow_id, rawRequest: state.rawRequest, scheme: state.scheme,
       targetHost, targetPort: state.targetPort, confirmSensitiveHostChange: confirmed,
     });
-    const history = includeResponseAttempt(await refreshHistory(true), response, state);
-    applyLatestDraft(history, state);
-    const feedback = replayFeedback(response);
-    if (feedback.kind === "error") state.setError(feedback.message);
-    else state.setNotice(feedback.message);
+    if (response.attempt) {
+      const responseHistory = includeResponseAttempt(state.attemptsRef.current, response, state);
+      applyLatestDraft(responseHistory, state);
+    }
+    applyReplayFeedback(response, state);
+    await reconcileReplayResponse({ response, state, refreshHistory });
   } catch (reason) { state.setError(String(reason)); }
   finally { state.setSending(false); }
 }
@@ -109,7 +137,8 @@ export function useReplay(host: PluginHost, flowId: string, visible: boolean) {
   useReplayEvents({ host, visible, refreshHistory, setError: state.setError });
   const selectAttempt = (index: number) => {
     const attempt = state.attempts[index]; if (!attempt) return;
-    state.drafts.current.set(state.selectedId ?? "draft", state.rawRequest); state.setSelectedId(attempt.id);
+    state.drafts.current.set(state.selectedId ?? "draft", state.rawRequest);
+    state.selectedIdRef.current = attempt.id; state.setSelectedId(attempt.id);
     state.setRawRequest(state.drafts.current.get(attempt.id) ?? attempt.request_raw);
     state.setScheme(replayScheme(attempt.scheme));
     state.setTargetHost(attempt.target_host); state.setTargetPort(attempt.target_port);

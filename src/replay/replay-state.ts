@@ -1,5 +1,13 @@
 import { useCallback, useRef, useState } from "preact/hooks";
 import type { ReplayAttempt, TrafficDetail } from "../types";
+import { replayScheme } from "./target";
+
+export function replayHistorySelection(
+  items: ReplayAttempt[], currentId: string | null, selectLatest: boolean,
+): ReplayAttempt | undefined {
+  if (selectLatest) return items.at(-1);
+  return items.find((item) => item.id === currentId) ?? items.at(-1);
+}
 
 export function useReplayState() {
   const [source, setSource] = useState<TrafficDetail>();
@@ -23,16 +31,25 @@ export function useReplayState() {
   const [stacked, setStacked] = useState(false);
   const exchangeRef = useRef<HTMLDivElement>(null);
   const drafts = useRef(new Map<string, string>());
+  const attemptsRef = useRef(attempts); attemptsRef.current = attempts;
+  const selectedIdRef = useRef(selectedId); selectedIdRef.current = selectedId;
   const replaceAttempts = useCallback((items: ReplayAttempt[], selectLatest: boolean) => {
-    setAttempts(items);
-    setSelectedId((current) => selectLatest ? items.at(-1)?.id ?? null : current && items.some((item) => item.id === current) ? current : items.at(-1)?.id ?? null);
+    const currentId = selectedIdRef.current;
+    const selected = replayHistorySelection(items, currentId, selectLatest);
+    attemptsRef.current = items; selectedIdRef.current = selected?.id ?? null;
+    setAttempts(items); setSelectedId(selected?.id ?? null);
+    if (!selected || (!selectLatest && selected.id === currentId)) return;
+    setRawRequest(drafts.current.get(selected.id) ?? selected.request_raw);
+    setScheme(replayScheme(selected.scheme)); setTargetHost(selected.target_host);
+    setTargetPort(selected.target_port);
   }, []);
   return {
     source, setSource, sourceRevision, setSourceRevision, rawRequest, setRawRequest, scheme, setScheme, targetHost, setTargetHost,
     targetPort, setTargetPort, attempts, setAttempts, selectedId, setSelectedId, result, setResult,
     loading, setLoading, resultLoading, setResultLoading, sending, setSending, error, setError,
     resultError, setResultError, notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,
-    setPanePercent, stacked, setStacked, exchangeRef, drafts, replaceAttempts,
+    setPanePercent, stacked, setStacked, exchangeRef, drafts, attemptsRef, selectedIdRef,
+    replaceAttempts,
   };
 }
 

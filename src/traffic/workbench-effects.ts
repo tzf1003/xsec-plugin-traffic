@@ -29,13 +29,22 @@ export function useTrafficListEffect(options: {
     if (!state.defaults || !visible) return;
     const requestId = ++state.listRequest.current;
     state.setLoading(true); state.setError(null);
-    void listTraffic(host, state.cursor, filter).then((result) => {
-      if (state.listRequest.current !== requestId) return;
-      state.setRows(result.items); state.setNextCursor(result.next_cursor ?? null); state.setHasNewTraffic(false);
-      state.setSelectedId((current) => current && result.items.some((item) => item.flow_id === current) ? current : result.items[0]?.flow_id ?? null);
-    }).catch((reason) => { if (state.listRequest.current === requestId) state.setError(`读取抓包流量失败：${String(reason)}`); })
-      .finally(() => { if (state.listRequest.current === requestId) state.setLoading(false); });
-    return () => { state.listRequest.current += 1; };
+    state.listQueue.current.schedule(async () => {
+      try {
+        const result = await listTraffic(host, state.cursor, filter);
+        if (state.listRequest.current !== requestId) return;
+        state.setRows(result.items); state.setNextCursor(result.next_cursor ?? null); state.setHasNewTraffic(false);
+        state.setSelectedId((current) => current && result.items.some((item) => item.flow_id === current) ? current : result.items[0]?.flow_id ?? null);
+      } catch (reason) {
+        if (state.listRequest.current === requestId) state.setError(`读取抓包流量失败：${String(reason)}`);
+      } finally {
+        if (state.listRequest.current === requestId) state.setLoading(false);
+      }
+    });
+    return () => {
+      state.listRequest.current += 1;
+      state.listQueue.current.clearPending();
+    };
   }, [filter, host, state.cursor, state.defaults, state.revision, visible]);
 }
 

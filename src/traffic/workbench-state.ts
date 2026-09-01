@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "preact/hooks";
 import { defaultFilterSettings } from "../filter";
+import { LatestTaskQueue } from "../latest-task-queue";
 import type { FilterSettings, TrafficDetail, TrafficSummary } from "../types";
 
 const DEFAULT_LIST_HEIGHT = 220;
@@ -26,6 +27,7 @@ export function useWorkbenchState() {
   const workbenchRef = useRef<HTMLElement>(null);
   const cursorRef = useRef(cursor);
   const listRequest = useRef(0);
+  const listQueue = useRef(new LatestTaskQueue());
   const detailRequest = useRef(0);
   const refreshTimer = useRef<number>();
   const prepareListTransition = useCallback(() => {
@@ -43,7 +45,7 @@ export function useWorkbenchState() {
     filterOpen, setFilterOpen, listHeight, setListHeight, cursor, setCursor, previous, setPrevious,
     nextCursor, setNextCursor, page, setPage, revision, setRevision, settingsRevision,
     setSettingsRevision, hasNewTraffic, setHasNewTraffic, workbenchRef, cursorRef, listRequest,
-    detailRequest, refreshTimer, prepareListTransition, resetPagination,
+    listQueue, detailRequest, refreshTimer, prepareListTransition, resetPagination,
   };
 }
 
