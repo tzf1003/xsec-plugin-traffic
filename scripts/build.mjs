@@ -16,7 +16,9 @@ await build({
   jsx: "automatic",
   jsxImportSource: "preact",
   loader: { ".css": "text" },
-  footer: { js: "export function activate(host){return __xsecTrafficFrontend.activate(host)}" },
+  footer: {
+    js: "export function activate(host){const controller=__xsecTrafficFrontend.activate(host);return{mount(root,context){return controller.mount(root,context)},update(context){return controller.update(context)},dispose(){return controller.dispose()}}}",
+  },
   legalComments: "none",
   minifyIdentifiers: false,
   minifySyntax: true,
