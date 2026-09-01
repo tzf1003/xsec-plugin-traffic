@@ -65,7 +65,8 @@ function normalizeAuthorityHost(value: string): string {
     return closing > 0 ? normalized.slice(1, closing) : normalized;
   }
   const separator = normalized.lastIndexOf(":");
-  return separator > 0 && /^\d+$/u.test(normalized.slice(separator + 1))
+  const singleColon = separator === normalized.indexOf(":");
+  return singleColon && separator > 0 && /^\d+$/u.test(normalized.slice(separator + 1))
     ? normalized.slice(0, separator)
     : normalized;
 }

@@ -22,8 +22,9 @@ test("replay confirmation is derived from the target and sensitive request heade
   const editedHost = raw.replace("old.test", "other.test");
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: editedHost }), true);
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: raw }), false);
+  const ipv6 = "GET / HTTP/1.1\r\nHost: [2001:db8::1]\r\nCookie: session=1\r\n\r\n";
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "2001:db8::1", targetHost: "2001:db8::1", rawRequest: ipv6 }), false);
   const authority = "GET / HTTP/1.1\r\nHost: OTHER.test:8443\r\nAuthorization: Bearer 1\r\n\r\n";
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: authority }), true);
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "other.test", targetHost: "other.test", rawRequest: authority }), false);
 });
-
