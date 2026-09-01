@@ -5,6 +5,7 @@ import type { FilterSettings, PluginHost } from "../types";
 import { Button, Notice, Spinner } from "../ui/primitives";
 import { FilterFields } from "../traffic/filter-fields";
 
+/** Render the default filter section component. */
 export function DefaultFilterSection({ host }: { host: PluginHost }) {
   const [filter, setFilter] = useState<FilterSettings>();
   const [loading, setLoading] = useState(true);

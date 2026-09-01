@@ -1,6 +1,7 @@
 import type { ComponentChildren, JSX } from "preact";
 import { Icon, type IconName } from "./icon";
 
+/** Render the button component. */
 export function Button({ icon, children, tone = "default", className = "", ...props }: {
   icon?: IconName;
   children?: ComponentChildren;
@@ -12,6 +13,7 @@ export function Button({ icon, children, tone = "default", className = "", ...pr
   </button>;
 }
 
+/** Render the icon button component. */
 export function IconButton({ label, icon, ...props }: {
   label: string;
   icon: IconName;
@@ -19,14 +21,17 @@ export function IconButton({ label, icon, ...props }: {
   return <button {...props} type="button" className="x-button is-ghost x-icon-button" aria-label={label} title={label}><Icon name={icon} /></button>;
 }
 
+/** Render the spinner component. */
 export function Spinner({ label }: { label: string }) {
   return <div className="x-loading" role="status"><span className="x-spinner" />{label}</div>;
 }
 
+/** Render the empty state component. */
 export function EmptyState({ children }: { children: ComponentChildren }) {
   return <div className="x-empty"><span className="x-empty-mark">HTTP</span><p>{children}</p></div>;
 }
 
+/** Render the notice component. */
 export function Notice({ tone = "error", children, onClose, action }: {
   tone?: "error" | "warning" | "success";
   children: ComponentChildren;
@@ -38,6 +43,7 @@ export function Notice({ tone = "error", children, onClose, action }: {
   </div>;
 }
 
+/** Render the field component. */
 export function Field({ label, children, className = "" }: {
   label: string;
   children: ComponentChildren;
@@ -46,6 +52,7 @@ export function Field({ label, children, className = "" }: {
   return <label className={`x-field ${className}`}><span>{label}</span>{children}</label>;
 }
 
+/** Render the check component. */
 export function Check({ checked, children, onChange, disabled = false }: {
   checked: boolean;
   children: ComponentChildren;
@@ -55,6 +62,7 @@ export function Check({ checked, children, onChange, disabled = false }: {
   return <label className="x-check"><input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.currentTarget.checked)} /><span>{children}</span></label>;
 }
 
+/** Render the dialog component. */
 export function Dialog({ title, children, footer, onClose, width = 820 }: {
   title: string;
   children: ComponentChildren;

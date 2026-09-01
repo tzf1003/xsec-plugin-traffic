@@ -1,15 +1,18 @@
 import type { FlowSection, FlowSnapshot, TrafficDetail } from "./types";
 
+/** Normalize an optional stored flow payload into a readable snapshot. */
 export function flowSnapshot(value: unknown): FlowSnapshot {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return value as FlowSnapshot;
 }
 
+/** Normalize object or tuple headers into ordered name-value pairs. */
 export function headerPairs(headers?: FlowSection["headers"]): [string, string][] {
   if (Array.isArray(headers)) return headers;
   return headers ? Object.entries(headers) : [];
 }
 
+/** Render a message start line, headers, and body as raw HTTP text. */
 export function renderSection(section?: FlowSection): string {
   if (!section) return "";
   const lines = section.line ? [section.line] : [];
@@ -18,16 +21,19 @@ export function renderSection(section?: FlowSection): string {
   return section.body === undefined ? head : `${head}\r\n\r\n${section.body}`;
 }
 
+/** Resolve raw request text from a traffic-detail payload. */
 export function requestRaw(detail: TrafficDetail): string {
   const snapshot = flowSnapshot(detail.payload);
   return snapshot.raw_request ?? renderSection(snapshot.request);
 }
 
+/** Resolve raw response text from a traffic-detail payload. */
 export function responseRaw(detail: TrafficDetail): string {
   const snapshot = flowSnapshot(detail.payload);
   return snapshot.raw_response ?? renderSection(snapshot.response);
 }
 
+/** Format body for readable display. */
 export function prettyBody(body?: string): string {
   if (!body) return "";
   try {
@@ -37,6 +43,7 @@ export function prettyBody(body?: string): string {
   }
 }
 
+/** Determine whether sensitive host confirmation is required. */
 export function requiresSensitiveHostConfirmation(options: {
   sourceHost: string;
   sourcePort: number | null | undefined;
@@ -55,6 +62,7 @@ export function requiresSensitiveHostConfirmation(options: {
 
 type ReplayOrigin = { scheme: "http" | "https"; host: string; port: number };
 
+/** Detect authorization or cookie headers in the request head. */
 function hasSensitiveHeaders(rawRequest: string): boolean {
   const normalized = rawRequest.replace(/\r\n/gu, "\n");
   const head = normalized.split("\n\n", 1)[0] ?? normalized;
@@ -67,6 +75,7 @@ function hasSensitiveHeaders(rawRequest: string): boolean {
   });
 }
 
+/** Verify Host and absolute-form authorities remain on the captured origin. */
 function requestAuthoritiesMatchSource(rawRequest: string, sourceOrigin: ReplayOrigin): boolean {
   const normalized = rawRequest.replace(/\r\n/gu, "\n");
   const head = normalized.split("\n\n", 1)[0] ?? normalized;
@@ -80,6 +89,7 @@ function requestAuthoritiesMatchSource(rawRequest: string, sourceOrigin: ReplayO
     && (!absoluteOrigin || sameOrigin(sourceOrigin, absoluteOrigin));
 }
 
+/** Parse an absolute-form request target into a replay origin. */
 function parseAbsoluteFormOrigin(startLine: string): ReplayOrigin | null | undefined {
   const requestTarget = startLine.trim().split(/\s+/u)[1];
   if (!requestTarget || !/^https?:\/\//iu.test(requestTarget)) return undefined;
@@ -91,6 +101,7 @@ function parseAbsoluteFormOrigin(startLine: string): ReplayOrigin | null | undef
   }
 }
 
+/** Normalize host, port, and scheme fields into a replay origin. */
 function endpointOrigin(host: string, port: number | null | undefined, scheme: string): ReplayOrigin | undefined {
   const normalizedScheme = scheme === "http" ? "http" : scheme === "https" ? "https" : undefined;
   const effectivePort = port ?? (normalizedScheme ? defaultPort(normalizedScheme) : undefined);
@@ -99,6 +110,7 @@ function endpointOrigin(host: string, port: number | null | undefined, scheme: s
   return authorityOrigin(`${hostValue}:${effectivePort}`, normalizedScheme);
 }
 
+/** Parse an HTTP authority under the supplied transport scheme. */
 function authorityOrigin(authority: string, scheme: "http" | "https"): ReplayOrigin | undefined {
   if (!authority.trim() || /[\\/?#@\s]/u.test(authority)) return undefined;
   try {
@@ -108,6 +120,7 @@ function authorityOrigin(authority: string, scheme: "http" | "https"): ReplayOri
   }
 }
 
+/** Normalize a URL into an HTTP replay origin. */
 function urlOrigin(url: URL): ReplayOrigin | undefined {
   const scheme = url.protocol === "http:" ? "http" : url.protocol === "https:" ? "https" : undefined;
   if (!scheme || !url.hostname) return undefined;
@@ -116,18 +129,22 @@ function urlOrigin(url: URL): ReplayOrigin | undefined {
   return { scheme, host: url.hostname.toLowerCase(), port };
 }
 
+/** Return the default TCP port for an HTTP transport scheme. */
 function defaultPort(scheme: "http" | "https"): number {
   return scheme === "https" ? 443 : 80;
 }
 
+/** Compare scheme, normalized host, and effective port as one origin. */
 function sameOrigin(left: ReplayOrigin, right: ReplayOrigin): boolean {
   return left.scheme === right.scheme && left.host === right.host && left.port === right.port;
 }
 
+/** Validate a TCP port as an integer in the accepted range. */
 function validPort(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 65_535;
 }
 
+/** Add a Host header when an editable raw request does not contain one. */
 export function ensureHost(raw: string, options: {
   host: string;
   port: number | null | undefined;

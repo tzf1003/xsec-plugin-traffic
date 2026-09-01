@@ -6,12 +6,14 @@ import { samePassiveRule } from "./rule-state";
 
 const EMPTY_RULE: PassiveRule = { rule_id: "", severity: "medium", pattern: "", enabled: true };
 
+/** Render the rule editor component. */
 function RuleEditor({ draft, disabled, onChange, onSave }: {
   draft: PassiveRule; disabled: boolean; onChange: (value: PassiveRule) => void; onSave: () => void;
 }) {
   return <div className="rule-form"><Field label="规则 ID"><input value={draft.rule_id} onInput={(event) => onChange({ ...draft, rule_id: event.currentTarget.value })} /></Field><Field label="严重级别"><select value={draft.severity} onChange={(event) => onChange({ ...draft, severity: event.currentTarget.value as PassiveRule["severity"] })}><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="critical">critical</option></select></Field><Field className="rule-pattern-field" label="正则表达式"><input value={draft.pattern} onInput={(event) => onChange({ ...draft, pattern: event.currentTarget.value })} /></Field><Check checked={draft.enabled} onChange={(enabled) => onChange({ ...draft, enabled })}>启用</Check><Button tone="primary" disabled={disabled} onClick={onSave}>保存</Button></div>;
 }
 
+/** Render the rule table component. */
 function RuleTable({ rules, disabled, onToggle, onEdit, onDelete }: {
   rules: PassiveRule[]; disabled: boolean; onToggle: (rule: PassiveRule, enabled: boolean) => void;
   onEdit: (rule: PassiveRule) => void; onDelete: (id: string) => void;
@@ -19,6 +21,7 @@ function RuleTable({ rules, disabled, onToggle, onEdit, onDelete }: {
   return <div className="rule-table-wrap"><table className="rule-table"><thead><tr><th>启用</th><th>规则 ID</th><th>严重</th><th>正则</th><th>操作</th></tr></thead><tbody>{rules.map((rule) => <tr key={rule.rule_id}><td><Check checked={rule.enabled} disabled={disabled} onChange={(enabled) => onToggle(rule, enabled)}><span className="sr-only">启用 {rule.rule_id}</span></Check></td><td><code>{rule.rule_id}</code></td><td>{rule.severity}</td><td className="rule-pattern" title={rule.pattern}>{rule.pattern}</td><td><Button tone="ghost" onClick={() => onEdit(rule)}>编辑</Button><Button tone="ghost" icon="trash" disabled={disabled} onClick={() => onDelete(rule.rule_id)}>删除</Button></td></tr>)}</tbody></table></div>;
 }
 
+/** Reload passive rules and publish failures at the settings boundary. */
 async function refreshRules(
   reload: () => Promise<void>,
   setError: (value: string | undefined) => void,
@@ -28,6 +31,7 @@ async function refreshRules(
   catch (reason) { setError(`${completed}，但刷新列表失败：${String(reason)}`); }
 }
 
+/** Build serialized save, toggle, and delete operations for passive rules. */
 function ruleMutations(options: {
   host: PluginHost; reload: () => Promise<void>; draftRef: { current: PassiveRule };
   updateDraft: (value: PassiveRule) => void; deleteId?: string;
@@ -66,6 +70,7 @@ function ruleMutations(options: {
   return { save, toggle, remove };
 }
 
+/** Render the rules section component. */
 export function RulesSection({ host }: { host: PluginHost }) {
   const [rules, setRules] = useState<PassiveRule[]>();
   const [draft, setDraft] = useState<PassiveRule>(EMPTY_RULE);

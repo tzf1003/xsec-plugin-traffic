@@ -5,6 +5,7 @@ import { Button, Dialog, Notice, Spinner } from "../ui/primitives";
 
 type CaModel = ReturnType<typeof useCaModel>;
 
+/** Load CA status and expose import or rotation actions with visible failures. */
 function useCaModel(host: PluginHost) {
   const [status, setStatus] = useState<CaStatus>();
   const [busy, setBusy] = useState(false);
@@ -30,17 +31,20 @@ function useCaModel(host: PluginHost) {
   return { status, busy, error, confirmRotate, setConfirmRotate, setRevision, run };
 }
 
+/** Render the CA loading component. */
 function CaLoading({ model }: { model: CaModel }) {
   if (!model.busy) return null;
   if (model.status) return null;
   return <Spinner label="正在读取证书状态…" />;
 }
 
+/** Render the CA error component. */
 function CaError({ model }: { model: CaModel }) {
   if (!model.error) return null;
   return <Notice action={<Button onClick={() => model.setRevision((value) => value + 1)}>检测状态</Button>}>{model.error}</Notice>;
 }
 
+/** Render the CA status details component. */
 function CaStatusDetails({ host, model }: { host: PluginHost; model: CaModel }) {
   if (!model.status) return null;
   const status = model.status;
@@ -51,6 +55,7 @@ function CaStatusDetails({ host, model }: { host: PluginHost; model: CaModel }) 
     <div className="settings-actions"><Button disabled={actionsDisabled} onClick={() => void model.run(() => importCa(host), "导入 MITM CA")}>导入到系统证书存储</Button><Button tone="danger" disabled={actionsDisabled} onClick={() => model.setConfirmRotate(true)}>重新生成并导入</Button><Button disabled={model.busy} icon="refresh" onClick={() => model.setRevision((value) => value + 1)}>检测状态</Button></div></>;
 }
 
+/** Render the rotate confirmation component. */
 function RotateConfirmation({ host, model }: { host: PluginHost; model: CaModel }) {
   if (!model.confirmRotate) return null;
   const close = () => model.setConfirmRotate(false);
@@ -58,6 +63,7 @@ function RotateConfirmation({ host, model }: { host: PluginHost; model: CaModel 
   return <Dialog title="重新生成 MITM CA？" width={480} onClose={close} footer={<><Button onClick={close}>取消</Button><Button tone="danger" onClick={confirm}>重新生成并导入</Button></>}><p>已有浏览器会话仍使用旧证书。重新生成后请新建浏览器会话。</p></Dialog>;
 }
 
+/** Render the CA section component. */
 export function CaSection({ host }: { host: PluginHost }) {
   const model = useCaModel(host);
   return <section className="settings-section"><header><div><h2>MITM CA 证书</h2><p>管理浏览器会话代理使用的根证书。</p></div></header>

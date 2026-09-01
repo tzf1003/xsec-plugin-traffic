@@ -2,6 +2,7 @@ import type { ReplayResult } from "../types";
 
 type ReplayFeedback = { kind: "error" | "success"; message: string };
 
+/** Derive user-visible completion or failure feedback from a replay result. */
 export function replayFeedback(response: ReplayResult): ReplayFeedback {
   if (response.attempt?.status === "failed") {
     return { kind: "error", message: response.attempt.error?.trim() || "重放失败" };

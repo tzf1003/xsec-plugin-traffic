@@ -19,6 +19,7 @@ const paths: Record<IconName, JSX.Element> = {
   trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14"/><path d="M10 11v6M14 11v6"/></>,
 };
 
+/** Render the icon component. */
 export function Icon({ name, size = 15 }: { name: IconName; size?: number }) {
   return <svg className="x-icon" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }

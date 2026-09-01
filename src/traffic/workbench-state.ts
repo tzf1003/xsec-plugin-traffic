@@ -5,18 +5,22 @@ import type { FilterSettings, TrafficDetail, TrafficSummary } from "../types";
 
 const DEFAULT_LIST_HEIGHT = 220;
 
+/** Clear the new-traffic marker only when viewing the latest cursor page. */
 export function shouldClearNewTraffic(cursor: string | undefined): boolean {
   return cursor === undefined;
 }
 
+/** Select the list-owned or action-owned notice shown by the workbench. */
 export function workbenchNotice(error: string | null, listError: string | null): string | null {
   return listError ?? error;
 }
 
+/** Show the empty state only after successful loading yields no rows. */
 export function showTrafficEmpty(error: string | null, listError: string | null, rowCount: number): boolean {
   return !error && !listError && rowCount === 0;
 }
 
+/** Own traffic list, detail, filters, pagination, and refresh state. */
 export function useWorkbenchState() {
   const [defaults, setDefaults] = useState<FilterSettings>();
   const [filter, setFilter] = useState<FilterSettings>(defaultFilterSettings());
