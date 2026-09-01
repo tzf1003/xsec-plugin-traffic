@@ -5,6 +5,8 @@ import { replayScheme } from "./target";
 export type ReplayConfirmation = {
   sourceFlowId: string;
   sourceHost: string;
+  sourcePort: number | null | undefined;
+  sourceScheme: string;
   rawRequest: string;
   scheme: "http" | "https";
   targetHost: string;

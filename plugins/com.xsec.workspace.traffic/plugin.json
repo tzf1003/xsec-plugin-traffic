@@ -3,7 +3,7 @@
   "name": "com.xsec.workspace.traffic", "version": "1.3.0", "description": "XSEC proxy traffic workspace tools", "author": { "name": "XSEC" }, "license": "MIT",
   "extensions": { "com.xsec.desktop": {
     "schemaVersion": 1, "displayName": "抓包流量", "publisher": "XSEC", "icon": "plug",
-    "engines": { "xsec": ">=0.1.0", "pluginApi": "^1.3.0" }, "entrypoints": { "frontend": "./com.xsec.desktop/frontend/index.js" },
+    "engines": { "xsec": ">=0.1.0", "pluginApi": "^1.4.0" }, "entrypoints": { "frontend": "./com.xsec.desktop/frontend/index.js" },
     "activationEvents": ["onWorkspaceTool:traffic", "onWorkspaceTool:traffic-replay", "onWorkspaceTool:request-detail", "onSettingsPage:traffic"],
     "permissions": { "workspace.session.read": {}, "workspace.session.write": {}, "workspace.composer.write": {}, "workspace.tool.open": {}, "pluginData.read": {}, "pluginData.write": {} },
     "frontendApi": { "version": 2, "module": "single-esm", "methods": {
