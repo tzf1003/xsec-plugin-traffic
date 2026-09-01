@@ -12,6 +12,7 @@ await build({
   globalName: "__xsecTrafficFrontend",
   platform: "browser",
   target: ["es2022"],
+  charset: "utf8",
   jsx: "automatic",
   jsxImportSource: "preact",
   loader: { ".css": "text" },
