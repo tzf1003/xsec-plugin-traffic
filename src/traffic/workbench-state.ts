@@ -15,7 +15,7 @@ export function workbenchNotice(error: string | null, listError: string | null):
   return listError ?? error;
 }
 
-/** Show the empty state only after successful loading yields no rows. */
+/** Show the empty state when no errors are present and the traffic list is empty. */
 export function showTrafficEmpty(error: string | null, listError: string | null, rowCount: number): boolean {
   return !error && !listError && rowCount === 0;
 }
