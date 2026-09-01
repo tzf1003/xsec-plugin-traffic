@@ -26,4 +26,4 @@ source of truth.
 默认流量过滤、MITM CA 和被动检测规则位于“设置 → 插件 → 抓包流量”。默认过滤
 仅初始化之后新打开的流量工作台；CA 和被动规则保存后立即生效。当前会话流量、
 搜索、详情和重放记录保留在主界面。详见仓库的
-[恢复方案与设置边界](../../docs/restoration-plan.md)。
+[恢复方案与设置边界](https://github.com/tzf1003/xsec-plugin-traffic/blob/main/docs/restoration-plan.md)。
