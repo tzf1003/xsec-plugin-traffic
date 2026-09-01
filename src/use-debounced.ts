@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
+/** Publish the latest value only after the configured quiet interval. */
 export function useDebounced<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
