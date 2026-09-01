@@ -39,9 +39,51 @@ Before publishing a Beta source revision, run `pnpm verify` and validate the
 declared plugin directory with the XSEC Desktop release tooling. The published
 source revision must include the generated frontend artifact. Factory records
 the exact Beta and Stable source revisions with the immutable release.
-For Stable publication, deterministically reproduce the same release and
-generated frontend artifact, then pass Desktop smoke tests on Linux, Windows,
-macOS ARM, and macOS Intel.
+
+Use the exact candidate commit for both channel checks. Source verification is
+defined by `.github/workflows/ci.yml`: Node 24, pnpm 10.34.5, and the frozen
+lockfile must reproduce the committed frontend without a diff:
+
+```bash
+git checkout --detach <candidate-source-sha>
+node --version
+pnpm --version
+pnpm install --frozen-lockfile
+pnpm verify
+git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
+```
+
+The version commands must report Node 24.x and pnpm 10.34.5. Any install,
+verification, test, or generated-artifact diff failure rejects the source
+revision. Record the source SHA and the successful `manifest` and
+`source-preflight / source-preflight` run URLs.
+
+The protected Factory automation described in the
+[first-party Factory runbook](https://github.com/tzf1003/xsec-plugins/blob/main/docs/first-party-plugin-factory.md)
+is the release-tooling authority. Its exact protected `xsec-plugins/main`
+revision and workflow run URL identify the tooling version; the Factory receipt
+must bind that revision to this repository's exact Beta and Stable SHAs. Stable
+passes reproduction only when the Factory source gate rebuilds the Beta
+release from the recorded Stable SHA and reports the same `releaseId` and
+artifact SHA-256. Record both source SHAs, the Factory revision and run URL,
+the release ID, and the artifact digest. Any mismatch or missing KMS/source-gate
+proof rejects promotion.
+
+Desktop acceptance follows the
+[official marketplace smoke contract](https://github.com/tzf1003/xSecDesktop/blob/main/desktop/docs/plugins/official-marketplace-smoke.md).
+The protected workflow runs the locked Desktop host command below against the
+exact Factory revision and requested channel, using a new temporary profile:
+
+```text
+cargo run --locked -p xsec-plugin-host --bin xsec-official-marketplace-smoke -- smoke --profile-root <fresh-runner-temp-path> --marketplace-revision <factory-revision> --channel <beta-or-stable>
+```
+
+The release passes only when the Linux (`ubuntu-24.04`), Windows
+(`windows-2022`), macOS ARM (`macos-15`), and macOS Intel
+(`macos-15-intel`) jobs all succeed for that revision and channel, and the
+Factory callback records the successful matrix. Retain the workflow run URL
+and each platform's `official-marketplace-smoke-*` report artifact; a failed or
+missing platform job rejects publication.
 
 Marketplace artifacts, release indexes, signatures, and Factory adoption proof
 remain in [tzf1003/xsec-plugins](https://github.com/tzf1003/xsec-plugins).
