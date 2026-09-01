@@ -2,6 +2,15 @@ import { useCallback, useRef, useState } from "preact/hooks";
 import type { ReplayAttempt, TrafficDetail } from "../types";
 import { replayScheme } from "./target";
 
+export type ReplayConfirmation = {
+  sourceFlowId: string;
+  sourceHost: string;
+  rawRequest: string;
+  scheme: "http" | "https";
+  targetHost: string;
+  targetPort: number;
+};
+
 export function replayHistorySelection(
   items: ReplayAttempt[], currentId: string | null, selectLatest: boolean,
 ): ReplayAttempt | undefined {
@@ -33,6 +42,7 @@ export function useReplayState() {
   const [stacked, setStacked] = useState(false);
   const exchangeRef = useRef<HTMLDivElement>(null);
   const drafts = useRef(new Map<string, string>());
+  const confirmation = useRef<ReplayConfirmation>();
   const attemptsRef = useRef(attempts); attemptsRef.current = attempts;
   const selectedIdRef = useRef(selectedId); selectedIdRef.current = selectedId;
   const replaceAttempts = useCallback((items: ReplayAttempt[], selectLatest: boolean) => {
@@ -53,7 +63,7 @@ export function useReplayState() {
     historyError, setHistoryError,
     resultError, setResultError, notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,
     setPanePercent, stacked, setStacked, exchangeRef, drafts, attemptsRef, selectedIdRef,
-    replaceAttempts,
+    confirmation, replaceAttempts,
   };
 }
 

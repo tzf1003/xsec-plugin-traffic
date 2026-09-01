@@ -89,7 +89,7 @@ export function RulesSection({ host }: { host: PluginHost }) {
   });
   const mutationDisabled = busy || loading;
   return <section className="settings-section"><header><div><h2>被动检测规则</h2><p>保存后应用于之后捕获的流量。</p></div></header>
-    {error ? <Notice action={!rules ? <Button onClick={() => { setLoading(true); setRevision((value) => value + 1); }}>重新读取</Button> : null} onClose={() => setError(undefined)}>{error}</Notice> : null}
+    {error ? <Notice action={<Button onClick={() => { setLoading(true); setRevision((value) => value + 1); }}>重新读取</Button>} onClose={() => setError(undefined)}>{error}</Notice> : null}
     <RuleEditor draft={draft} disabled={mutationDisabled} onChange={updateDraft} onSave={() => void save()} />
     {loading ? <Spinner label="正在读取被动规则…" /> : null}
     {rules ? <RuleTable rules={rules} disabled={mutationDisabled} onToggle={(rule, enabled) => void toggle(rule, enabled)} onEdit={updateDraft} onDelete={setDeleteId} /> : null}

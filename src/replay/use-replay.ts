@@ -5,7 +5,7 @@ import { requiresSensitiveHostConfirmation } from "../proxy";
 import type { PluginHost, ReplayAttempt, ReplayResult } from "../types";
 import { replayFeedback } from "./feedback";
 import { useReplayEvents, useReplayLayout, useReplayResult, useReplaySource } from "./replay-effects";
-import { useReplayState, type ReplayState } from "./replay-state";
+import { useReplayState, type ReplayConfirmation, type ReplayState } from "./replay-state";
 import { replayScheme, replayTargetError } from "./target";
 
 const MIN_PANE_PERCENT = 25;
@@ -42,6 +42,17 @@ async function reconcileReplayResponse(options: {
     const refreshError = `刷新重放历史失败：${String(reason)}`;
     state.setHistoryError(refreshError);
   }
+}
+
+function sameConfirmation(state: ReplayState, approved: ReplayConfirmation): boolean {
+  const source = state.source;
+  if (!source) return false;
+  return source.flow_id === approved.sourceFlowId
+    && source.host === approved.sourceHost
+    && state.rawRequest === approved.rawRequest
+    && state.scheme === approved.scheme
+    && state.targetHost.trim() === approved.targetHost
+    && state.targetPort === approved.targetPort;
 }
 
 function applyLatestDraft(history: ReplayAttempt[], state: ReplayState) {
@@ -95,9 +106,25 @@ async function sendReplay(options: {
   const validationError = replayTargetError(state.targetHost, state.targetPort);
   if (validationError) { state.setError(validationError); return; }
   const targetHost = state.targetHost.trim();
+  if (confirmed) {
+    const approved = state.confirmation.current;
+    state.confirmation.current = undefined;
+    if (!approved || !sameConfirmation(state, approved)) {
+      state.setConfirmOpen(false);
+      return sendReplay({ host, state, confirmed: false, refreshHistory });
+    }
+  }
   if (!confirmed && requiresSensitiveHostConfirmation({
     sourceHost: state.source.host, targetHost, rawRequest: state.rawRequest,
   })) {
+    state.confirmation.current = {
+      sourceFlowId: state.source.flow_id,
+      sourceHost: state.source.host,
+      rawRequest: state.rawRequest,
+      scheme: state.scheme,
+      targetHost,
+      targetPort: state.targetPort,
+    };
     state.setConfirmOpen(true); return;
   }
   state.setSending(true);

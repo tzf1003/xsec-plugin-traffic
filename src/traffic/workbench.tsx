@@ -34,7 +34,8 @@ function TrafficError({ model }: { model: WorkbenchModel }) {
   const retry = model.defaults
     ? null
     : <Button onClick={() => model.setSettingsRevision((value) => value + 1)}>重新读取</Button>;
-  return <Notice onClose={() => model.setError(null)} action={retry}>{model.error}</Notice>;
+  const dismiss = model.defaults ? () => model.setError(null) : undefined;
+  return <Notice onClose={dismiss} action={retry}>{model.error}</Notice>;
 }
 
 function NewTrafficNotice({ model }: { model: WorkbenchModel }) {
