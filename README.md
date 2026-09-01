@@ -55,8 +55,9 @@ git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/fron
 
 The version commands must report Node v24.19.0 and pnpm 10.34.5. Any install,
 verification, test, or generated-artifact diff failure rejects the source
-revision. Record the source SHA and the successful `manifest` and
-`source-preflight / source-preflight` run URLs.
+revision. Record the source SHA, the successful `Plugin source validation`
+workflow run URL, and its `manifest` and `source-preflight / source-preflight`
+job URLs.
 
 The protected Factory automation described in the
 [first-party Factory runbook](https://github.com/tzf1003/xsec-plugins/blob/main/docs/first-party-plugin-factory.md)
@@ -70,7 +71,7 @@ the release ID, and the artifact digest. Any mismatch or missing KMS/source-gate
 proof rejects promotion.
 
 Desktop acceptance follows the
-[official marketplace smoke contract](https://github.com/tzf1003/xSecDesktop/blob/main/docs/plugins/official-marketplace-smoke.md).
+[official marketplace smoke contract](https://github.com/tzf1003/xsec-plugins/blob/main/docs/desktop-remote-marketplace-smoke-contract.md).
 The protected workflow runs the locked Desktop host command below against the
 exact Factory revision and requested channel, using a new temporary profile:
 
