@@ -1,6 +1,7 @@
 import { compactParameterLabel, extensionLabel, formatBytes, formatTime, hostLabel, methodClass, mimeLabel, parameterLabel, requestTarget, sourceLabel, statusClass } from "../format";
 import type { TrafficSummary } from "../types";
 
+/** Render the flow table component. */
 export function FlowTable({ rows, page, selectedId, onSelect, onOpen }: {
   rows: TrafficSummary[];
   page: number;

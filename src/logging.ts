@@ -1,5 +1,6 @@
 type LogContext = Record<string, boolean | number | string | undefined>;
 
+/** Log an action boundary while preserving its result or thrown error. */
 export async function loggedAction<T>(
   event: string,
   context: LogContext,

@@ -6,6 +6,7 @@ import type { Disposable, PluginContext, PluginHost } from "./types";
 
 const THEME_TOKEN_NAME = /^[a-z0-9-]+$/iu;
 
+/** Apply theme to the active plugin state. */
 function applyTheme(theme: Record<string, string>): void {
   for (const [name, value] of Object.entries(theme)) {
     if (THEME_TOKEN_NAME.test(name)) document.documentElement.style.setProperty(`--xsec-${name}`, value);
@@ -14,6 +15,7 @@ function applyTheme(theme: Record<string, string>): void {
   if (mode === "light" || mode === "dark") document.documentElement.style.colorScheme = mode;
 }
 
+/** Install styles for the active plugin surface. */
 function installStyles(root: HTMLElement): HTMLStyleElement {
   const style = document.createElement("style");
   style.dataset.xsecTrafficStyles = ""; style.textContent = styles; root.before(style);
@@ -26,11 +28,13 @@ type Controller = {
   dispose(): void;
 };
 
+/** Read initial context from the active plugin context. */
 function readInitialContext(host: PluginHost): PluginContext | undefined {
   if (host.context?.kind === undefined) return undefined;
   return parseContext(host.context);
 }
 
+/** Activate the Traffic frontend controller against the Desktop host bridge. */
 export function activate(host: PluginHost): Controller {
   if (host.apiVersion !== 2) throw new Error(`不支持的 Frontend API：${host.apiVersion}`);
   console.debug("traffic.frontend.activate", { apiVersion: host.apiVersion });

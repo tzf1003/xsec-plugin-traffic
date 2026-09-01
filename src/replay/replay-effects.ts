@@ -8,6 +8,7 @@ import { replayScheme } from "./target";
 const STACK_THRESHOLD = 780;
 const EVENT_COALESCE_MS = 180;
 
+/** Initialize replay target and request fields from the captured source flow. */
 function applySource(options: {
   state: ReplayState; detail: TrafficDetail; history: ReplayAttempt[];
 }) {
@@ -29,6 +30,7 @@ function applySource(options: {
   state.setRawRequest(latest?.request_raw ?? initial);
 }
 
+/** Load the source flow and replay history when the flow identifier changes. */
 export function useReplaySource({ host, flowId, state, refreshHistory }: {
   host: PluginHost; flowId: string; state: ReplayState;
   refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
@@ -43,6 +45,7 @@ export function useReplaySource({ host, flowId, state, refreshHistory }: {
   }, [flowId, host, refreshHistory, state.sourceRevision]);
 }
 
+/** Load the selected replay attempt's captured result flow. */
 export function useReplayResult({ host, resultId, state }: {
   host: PluginHost; resultId: string | null | undefined; state: ReplayState;
 }) {
@@ -57,6 +60,7 @@ export function useReplayResult({ host, resultId, state }: {
   }, [host, resultId, state.resultRevision]);
 }
 
+/** Track stacked replay layout and clamp pane proportions on mode changes. */
 export function useReplayLayout(state: ReplayState) {
   useEffect(() => {
     const element = state.exchangeRef.current;
@@ -67,6 +71,7 @@ export function useReplayLayout(state: ReplayState) {
   }, [state.source]);
 }
 
+/** Refresh visible replay history when the host reports a recorded attempt. */
 export function useReplayEvents(options: {
   host: PluginHost; visible: boolean; refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
   setHistoryError: ReplayState["setHistoryError"];

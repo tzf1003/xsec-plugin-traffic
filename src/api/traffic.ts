@@ -4,6 +4,7 @@ import { replayAttempts, replayResult, trafficDetail, trafficPage } from "./traf
 
 const PAGE_SIZE = 100;
 
+/** List traffic through the host boundary. */
 export async function listTraffic(
   host: PluginHost,
   cursor: string | undefined,
@@ -13,14 +14,17 @@ export async function listTraffic(
   return trafficPage(await host.request("xsec.traffic.list", params));
 }
 
+/** Load traffic through the host boundary. */
 export async function getTraffic(host: PluginHost, flowId: string): Promise<TrafficDetail> {
   return trafficDetail(await host.request("xsec.traffic.get", { flowId }));
 }
 
+/** Load replay attempts through the host boundary. */
 export async function getReplayAttempts(host: PluginHost, flowId: string) {
   return replayAttempts(await host.request("xsec.traffic.replay-attempts", { flowId }));
 }
 
+/** Submit a validated editable replay request through the host boundary. */
 export async function replayTraffic(host: PluginHost, input: {
   sourceFlowId: string;
   rawRequest: string;
@@ -36,6 +40,7 @@ export async function replayTraffic(host: PluginHost, input: {
   }, async () => replayResult(await host.request("xsec.traffic.replay", input)));
 }
 
+/** Open traffic tool through the host boundary. */
 export async function openTrafficTool(
   host: PluginHost,
   options: {
@@ -53,6 +58,7 @@ export async function openTrafficTool(
   });
 }
 
+/** Add traffic reference through the host boundary. */
 export async function addTrafficReference(host: PluginHost, flowId: string): Promise<void> {
   await loggedAction("traffic.reference.add", {}, async () => {
     await host.request("xsec.traffic.reference.add", { flowId });

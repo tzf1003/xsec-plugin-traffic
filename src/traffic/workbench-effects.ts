@@ -6,6 +6,7 @@ import { shouldClearNewTraffic, type WorkbenchState } from "./workbench-state";
 
 const EVENT_COALESCE_MS = 180;
 
+/** Load persisted traffic filters and refresh them after settings changes. */
 export function useSettingsEffect({ host, state }: { host: PluginHost; state: WorkbenchState }) {
   useEffect(() => {
     let active = true;
@@ -21,6 +22,7 @@ export function useSettingsEffect({ host, state }: { host: PluginHost; state: Wo
   }, [host, state.resetPagination, state.settingsRevision]);
 }
 
+/** Serialize paginated traffic-list requests for the active filter and cursor. */
 export function useTrafficListEffect(options: {
   host: PluginHost; visible: boolean; state: WorkbenchState; filter: TrafficFilter;
 }) {
@@ -49,6 +51,7 @@ export function useTrafficListEffect(options: {
   }, [filter, host, state.cursor, state.defaults, state.revision, visible]);
 }
 
+/** Load the selected traffic detail while discarding stale responses. */
 export function useTrafficDetailEffect(options: {
   host: PluginHost; visible: boolean; state: WorkbenchState;
 }) {
@@ -66,6 +69,7 @@ export function useTrafficDetailEffect(options: {
   }, [host, state.selectedId, state.detailRevision, visible]);
 }
 
+/** Refresh the latest page or mark new traffic when persistence events arrive. */
 export function useTrafficEvents({ host, visible, state }: {
   host: PluginHost; visible: boolean; state: WorkbenchState;
 }) {

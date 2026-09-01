@@ -10,6 +10,7 @@ import { useWorkbenchState, type WorkbenchState } from "./workbench-state";
 const MIN_LIST_HEIGHT = 160;
 const FILTER_DELAY_MS = 250;
 
+/** Build previous, next, and latest-page transitions for cursor pagination. */
 function paginationActions(state: WorkbenchState) {
   const previousPage = () => {
     const target = state.previous.at(-1); if (!state.previous.length) return;
@@ -27,6 +28,7 @@ function paginationActions(state: WorkbenchState) {
   return { previousPage, nextPage, latestPage };
 }
 
+/** Debounce only search fields before constructing the traffic request filter. */
 function useRequestFilter(filter: FilterSettings) {
   const search = useMemo(() => ({
     searchTerm: filter.searchTerm,
@@ -42,6 +44,7 @@ function useRequestFilter(filter: FilterSettings) {
   ]);
 }
 
+/** Create a pointer handler that resizes the traffic-list pane. */
 function listResize(state: WorkbenchState) {
   return (event: TargetedPointerEvent<HTMLDivElement>) => {
     event.preventDefault(); const startY = event.clientY; const start = state.listHeight;
@@ -55,6 +58,7 @@ function listResize(state: WorkbenchState) {
   };
 }
 
+/** Compose traffic loading, filters, pagination, tools, and reference actions. */
 export function useWorkbench(host: PluginHost, context: WorkspaceToolContext) {
   const state = useWorkbenchState();
   const requestFilter = useRequestFilter(state.filter);

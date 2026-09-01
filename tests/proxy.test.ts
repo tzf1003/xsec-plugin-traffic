@@ -14,6 +14,7 @@ test("message rendering preserves start line, headers, body and JSON pretty view
   assert.equal(prettyBody("{\"ok\":true}"), "{\n  \"ok\": true\n}");
 });
 
+/** Build replay-confirmation inputs with focused test overrides. */
 function confirmationOptions(overrides: Partial<Parameters<typeof requiresSensitiveHostConfirmation>[0]>) {
   return {
     sourceHost: "old.test", sourcePort: 443, sourceScheme: "https",

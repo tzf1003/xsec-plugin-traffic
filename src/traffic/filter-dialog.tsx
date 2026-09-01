@@ -4,14 +4,17 @@ import type { FilterSettings } from "../types";
 import { Button, Dialog } from "../ui/primitives";
 import { FilterFields } from "./filter-fields";
 
+/** Select every accepted enum category in the filter draft. */
 function allVisible(value: FilterSettings): FilterSettings {
   return { ...value, onlyInScope: false, hideWithoutResponse: false, onlyParameterized: false, mimeCategories: [...MIME_CATEGORIES], statusClasses: [...STATUS_CLASSES], sources: [...TRAFFIC_SOURCES], searchTerm: "", searchRegex: false, searchCaseSensitive: false, searchNegative: false, showOnlyExtensionsEnabled: false, hideExtensionsEnabled: false };
 }
 
+/** Clear every enum category in the filter draft. */
 function allHidden(value: FilterSettings): FilterSettings {
   return { ...value, onlyInScope: false, hideWithoutResponse: true, onlyParameterized: false, mimeCategories: [], statusClasses: [], sources: [], searchTerm: "", searchRegex: false, searchCaseSensitive: false, searchNegative: false, showOnlyExtensionsEnabled: false, hideExtensionsEnabled: false };
 }
 
+/** Render the filter dialog component. */
 export function FilterDialog({ value, defaults, onClose, onApply }: {
   value: FilterSettings;
   defaults: FilterSettings;

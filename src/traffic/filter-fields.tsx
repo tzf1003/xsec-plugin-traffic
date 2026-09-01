@@ -6,10 +6,12 @@ const MIME_LABELS: Record<MimeCategory, string> = { html: "HTML", otherText: "�
 const STATUS_LABELS: Record<StatusClass, string> = { informational: "1xx（信息响应）", success: "2xx（成功）", redirection: "3xx（重定向）", clientError: "4xx（客户端错误）", serverError: "5xx（服务端错误）" };
 const SOURCE_LABELS: Record<TrafficSource, string> = { proxy: "代理捕获", replay: "重放结果" };
 
+/** Add or remove one enum value while preserving list order. */
 function toggle<T extends string>(items: T[], value: T, checked: boolean): T[] {
   return checked ? [...new Set([...items, value])] : items.filter((item) => item !== value);
 }
 
+/** Render the filter fields component. */
 export function FilterFields({ value, onChange, includeSearch = true, className = "filter-grid" }: {
   value: FilterSettings;
   onChange: (value: FilterSettings) => void;
