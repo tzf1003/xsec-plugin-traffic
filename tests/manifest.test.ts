@@ -55,4 +55,9 @@ test("generated frontend is a loadable self-contained ESM controller", async () 
   const module = await import(`${pathToFileURL(frontendPath).href}?test=${Date.now()}`);
   assert.deepEqual(Object.keys(module), ["activate"]);
   assert.equal(typeof module.activate, "function");
+  const controller = module.activate({
+    apiVersion: 2,
+    context: { kind: "settings-page", settings: { id: "traffic", page: "traffic" } },
+  });
+  assert.equal(typeof controller.mount, "function");
 });
