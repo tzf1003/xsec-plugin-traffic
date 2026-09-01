@@ -1,6 +1,6 @@
 import type { PluginContext, SettingsContext, WorkspaceToolContext } from "./types";
 
-/** Require a named plugin-context value to be a plain object. */
+/** Require a named plugin-context value to be a non-null, non-array object. */
 function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name}无效`);
   return value as Record<string, unknown>;
@@ -32,7 +32,7 @@ function parseSettings(root: Record<string, unknown>): SettingsContext {
   };
 }
 
-/** Parse workspace tool, project, binding, and session metadata. */
+/** Parse tool, workspace, binding, session, and optional entity metadata. */
 function parseWorkspace(root: Record<string, unknown>): WorkspaceToolContext {
   const tool = object(root.tool, "工作区工具");
   const workspace = object(root.workspace, "工作区绑定");
