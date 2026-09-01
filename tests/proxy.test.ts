@@ -44,5 +44,6 @@ test("replay confirmation compares complete origins when sensitive headers are p
   assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetPort: 8443, rawRequest: raw })), true);
   assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: absoluteSame.replace("https://", "http://") })), true);
   assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw.replace("Host: old.test", "Host:") })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw.replace("old.test", "old.test\\other.test") })), true);
   assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw.replace("GET /", "GET https://[::1") })), true);
 });

@@ -99,7 +99,7 @@ function endpointOrigin(host: string, port: number | null | undefined, scheme: s
 }
 
 function authorityOrigin(authority: string, scheme: "http" | "https"): ReplayOrigin | undefined {
-  if (!authority.trim() || /[/?#@\s]/u.test(authority)) return undefined;
+  if (!authority.trim() || /[\\/?#@\s]/u.test(authority)) return undefined;
   try {
     return urlOrigin(new URL(`${scheme}://${authority}`));
   } catch {
