@@ -10,7 +10,7 @@ test("manifest grants only the capabilities required by the restored workbench",
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const extension = manifest.extensions["com.xsec.desktop"];
   assert.equal(manifest.version, "1.3.0");
-  assert.equal(extension.engines.pluginApi, "^1.3.0");
+  assert.equal(extension.engines.pluginApi, "^1.4.0");
   assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.reference.add"], { capability: "workspace.composer.write", binding: "session" });
@@ -40,6 +40,7 @@ test("manifest activates every restored surface through plugin contributions", a
 test("generated frontend is a loadable self-contained ESM controller", async () => {
   const source = await readFile(frontendPath, "utf8");
   assert.match(source, /export\s+function\s+activate\s*\(\s*host\s*\)/u);
+  assert.match(source, /host\.request\s*\(/u);
   assert.equal(/\bfetch\s*\(/u.test(source), false);
   assert.equal(/https?:\/\/(?!www\.w3\.org)/u.test(source), false);
   for (const event of [
