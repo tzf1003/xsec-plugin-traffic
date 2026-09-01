@@ -3,13 +3,14 @@ import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const output = resolve("plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js");
-// Factory reads this boundary statically, so keep each lifecycle delegate explicit.
-const frontendFooter = `/**
+const activateDocumentation = `/**
  * Activate the Traffic frontend and expose its host lifecycle.
  * @param {object} host Desktop host bridge for the active plugin surface.
  * @returns {object} Explicit mount, update, and dispose lifecycle delegates.
- */
-export function activate(host){
+ */`;
+
+/** Build the explicit Traffic lifecycle exported by the generated frontend. */
+function activate(host){
   const controller=__xsecTrafficFrontend.activate(host);
   return{
     /**
@@ -26,7 +27,10 @@ export function activate(host){
     /** Dispose subscriptions, rendered content, and retained surface state. */
     dispose(){return controller.dispose()}
   };
-}`;
+}
+
+// Factory reads this boundary statically, so preserve the named lifecycle source.
+const frontendFooter = `${activateDocumentation}\nexport ${activate.toString()}`;
 await mkdir(dirname(output), { recursive: true });
 await build({
   entryPoints: [resolve("src/entrypoint.tsx")],
