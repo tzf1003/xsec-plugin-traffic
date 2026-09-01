@@ -51,6 +51,7 @@ async function verifyGeneratedFrontend(): Promise<void> {
     "@param {Element} root",
     "@param {object} context",
     "@returns {object}",
+    "@returns {void}",
   ]) {
     assert.match(source, new RegExp(annotation.replace(/[{}]/gu, "\\$&"), "u"));
   }
