@@ -31,11 +31,6 @@ function readInitialContext(host: PluginHost): PluginContext | undefined {
   return parseContext(host.context);
 }
 
-/**
- * Activate the Traffic controller for one Desktop host bridge.
- * @param host Desktop host bridge for the active plugin surface.
- * @returns Explicit mount, update, and dispose lifecycle callbacks.
- */
 export function activate(host: PluginHost): Controller {
   if (host.apiVersion !== 2) throw new Error(`不支持的 Frontend API：${host.apiVersion}`);
   console.debug("traffic.frontend.activate", { apiVersion: host.apiVersion });
@@ -43,17 +38,11 @@ export function activate(host: PluginHost): Controller {
   let current = readInitialContext(host);
   let themeSubscription: Disposable | undefined;
   let style: HTMLStyleElement | undefined;
-  /** Render the current Traffic context when both lifecycle inputs exist. */
   const draw = () => {
     if (!root || !current) return;
     render(<PluginApp host={host} context={current} />, root);
   };
   return {
-    /**
-     * Mount the Traffic UI into the host-owned root with its initial context.
-     * @param nextRoot Host-owned element for the active Traffic surface.
-     * @param context Initial workspace-tool or settings-page context.
-     */
     mount(nextRoot, context) {
       root = nextRoot;
       current = parseContext(context);
@@ -65,10 +54,6 @@ export function activate(host: PluginHost): Controller {
       themeSubscription = host.onTheme(applyTheme);
       draw();
     },
-    /**
-     * Apply the current workspace-tool or settings-page context.
-     * @param context Next host context for the active Traffic surface.
-     */
     update(context) {
       current = parseContext(context);
       console.debug("traffic.frontend.update", {
@@ -77,7 +62,6 @@ export function activate(host: PluginHost): Controller {
       });
       draw();
     },
-    /** Release theme subscriptions, rendered content, and retained UI state. */
     dispose() {
       console.debug("traffic.frontend.dispose");
       themeSubscription?.dispose(); themeSubscription = undefined;
