@@ -39,22 +39,25 @@ export function prettyBody(body?: string): string {
 
 export function requiresSensitiveHostConfirmation(options: {
   sourceHost: string;
+  sourcePort: number | null | undefined;
+  sourceScheme: string;
   targetHost: string;
+  targetPort: number;
+  targetScheme: "http" | "https";
   rawRequest: string;
 }): boolean {
-  const normalized = options.rawRequest.replace(/\r\n/gu, "\n");
+  if (!hasSensitiveHeaders(options.rawRequest)) return false;
+  const sourceOrigin = endpointOrigin(options.sourceHost, options.sourcePort, options.sourceScheme);
+  const targetOrigin = endpointOrigin(options.targetHost, options.targetPort, options.targetScheme);
+  if (!sourceOrigin || !targetOrigin || !sameOrigin(sourceOrigin, targetOrigin)) return true;
+  return !requestAuthoritiesMatchSource(options.rawRequest, sourceOrigin);
+}
+
+type ReplayOrigin = { scheme: "http" | "https"; host: string; port: number };
+
+function hasSensitiveHeaders(rawRequest: string): boolean {
+  const normalized = rawRequest.replace(/\r\n/gu, "\n");
   const head = normalized.split("\n\n", 1)[0] ?? normalized;
-  const lines = head.split("\n");
-  const requestHost = lines.slice(1).find((line) => /^host\s*:/iu.test(line))?.replace(/^host\s*:/iu, "").trim();
-  const sourceHost = normalizeAuthorityHost(options.sourceHost);
-  const targetHost = normalizeAuthorityHost(options.targetHost);
-  const requestAuthority = requestHost ? normalizeAuthorityHost(requestHost) : undefined;
-  const absoluteAuthority = parseAbsoluteFormAuthority(lines[0] ?? "");
-  if (
-    sourceHost === targetHost
-    && (requestAuthority === undefined || sourceHost === requestAuthority)
-    && (absoluteAuthority === undefined || sourceHost === absoluteAuthority)
-  ) return false;
   return head.split("\n").slice(1).some((line) => {
     if (line.startsWith(" ") || line.startsWith("\t")) return false;
     const separator = line.indexOf(":");
@@ -64,27 +67,64 @@ export function requiresSensitiveHostConfirmation(options: {
   });
 }
 
-function parseAbsoluteFormAuthority(startLine: string): string | undefined {
+function requestAuthoritiesMatchSource(rawRequest: string, sourceOrigin: ReplayOrigin): boolean {
+  const normalized = rawRequest.replace(/\r\n/gu, "\n");
+  const head = normalized.split("\n\n", 1)[0] ?? normalized;
+  const lines = head.split("\n");
+  const hostHeader = lines.slice(1).find((line) => /^host\s*:/iu.test(line));
+  const requestHost = hostHeader?.replace(/^host\s*:/iu, "").trim();
+  const requestOrigin = requestHost === undefined ? undefined : authorityOrigin(requestHost, sourceOrigin.scheme);
+  const absoluteOrigin = parseAbsoluteFormOrigin(lines[0] ?? "");
+  return (requestHost === undefined || Boolean(requestOrigin && sameOrigin(sourceOrigin, requestOrigin)))
+    && absoluteOrigin !== null
+    && (!absoluteOrigin || sameOrigin(sourceOrigin, absoluteOrigin));
+}
+
+function parseAbsoluteFormOrigin(startLine: string): ReplayOrigin | null | undefined {
   const requestTarget = startLine.trim().split(/\s+/u)[1];
   if (!requestTarget || !/^https?:\/\//iu.test(requestTarget)) return undefined;
   try {
-    return normalizeAuthorityHost(new URL(requestTarget).host);
+    return urlOrigin(new URL(requestTarget)) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function endpointOrigin(host: string, port: number | null | undefined, scheme: string): ReplayOrigin | undefined {
+  const normalizedScheme = scheme === "http" ? "http" : scheme === "https" ? "https" : undefined;
+  const effectivePort = port ?? (normalizedScheme ? defaultPort(normalizedScheme) : undefined);
+  if (!normalizedScheme || !validPort(effectivePort)) return undefined;
+  const hostValue = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  return authorityOrigin(`${hostValue}:${effectivePort}`, normalizedScheme);
+}
+
+function authorityOrigin(authority: string, scheme: "http" | "https"): ReplayOrigin | undefined {
+  if (!authority.trim() || /[/?#@\s]/u.test(authority)) return undefined;
+  try {
+    return urlOrigin(new URL(`${scheme}://${authority}`));
   } catch {
     return undefined;
   }
 }
 
-function normalizeAuthorityHost(value: string): string {
-  const normalized = value.trim().toLowerCase();
-  if (normalized.startsWith("[")) {
-    const closing = normalized.indexOf("]");
-    return closing > 0 ? normalized.slice(1, closing) : normalized;
-  }
-  const separator = normalized.lastIndexOf(":");
-  const singleColon = separator === normalized.indexOf(":");
-  return singleColon && separator > 0 && /^\d+$/u.test(normalized.slice(separator + 1))
-    ? normalized.slice(0, separator)
-    : normalized;
+function urlOrigin(url: URL): ReplayOrigin | undefined {
+  const scheme = url.protocol === "http:" ? "http" : url.protocol === "https:" ? "https" : undefined;
+  if (!scheme || !url.hostname) return undefined;
+  const port = Number(url.port || defaultPort(scheme));
+  if (!validPort(port)) return undefined;
+  return { scheme, host: url.hostname.toLowerCase(), port };
+}
+
+function defaultPort(scheme: "http" | "https"): number {
+  return scheme === "https" ? 443 : 80;
+}
+
+function sameOrigin(left: ReplayOrigin, right: ReplayOrigin): boolean {
+  return left.scheme === right.scheme && left.host === right.host && left.port === right.port;
+}
+
+function validPort(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 65_535;
 }
 
 export function ensureHost(raw: string, options: {

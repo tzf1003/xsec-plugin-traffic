@@ -49,6 +49,8 @@ function sameConfirmation(state: ReplayState, approved: ReplayConfirmation): boo
   if (!source) return false;
   return source.flow_id === approved.sourceFlowId
     && source.host === approved.sourceHost
+    && source.port === approved.sourcePort
+    && source.scheme === approved.sourceScheme
     && state.rawRequest === approved.rawRequest
     && state.scheme === approved.scheme
     && state.targetHost.trim() === approved.targetHost
@@ -115,11 +117,14 @@ async function sendReplay(options: {
     }
   }
   if (!confirmed && requiresSensitiveHostConfirmation({
-    sourceHost: state.source.host, targetHost, rawRequest: state.rawRequest,
+    sourceHost: state.source.host, sourcePort: state.source.port, sourceScheme: state.source.scheme,
+    targetHost, targetPort: state.targetPort, targetScheme: state.scheme, rawRequest: state.rawRequest,
   })) {
     state.confirmation.current = {
       sourceFlowId: state.source.flow_id,
       sourceHost: state.source.host,
+      sourcePort: state.source.port,
+      sourceScheme: state.source.scheme,
       rawRequest: state.rawRequest,
       scheme: state.scheme,
       targetHost,

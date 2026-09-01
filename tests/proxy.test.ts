@@ -14,21 +14,35 @@ test("message rendering preserves start line, headers, body and JSON pretty view
   assert.equal(prettyBody("{\"ok\":true}"), "{\n  \"ok\": true\n}");
 });
 
-test("replay confirmation is derived from the target and sensitive request headers", () => {
+function confirmationOptions(overrides: Partial<Parameters<typeof requiresSensitiveHostConfirmation>[0]>) {
+  return {
+    sourceHost: "old.test", sourcePort: 443, sourceScheme: "https",
+    targetHost: "old.test", targetPort: 443, targetScheme: "https" as const,
+    rawRequest: "",
+    ...overrides,
+  };
+}
+
+test("replay confirmation compares complete origins when sensitive headers are present", () => {
   const raw = "GET / HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw }), true);
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "OLD.TEST", rawRequest: raw }), false);
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw.replace("Cookie", "X-Test") }), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetHost: "new.test", rawRequest: raw })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetHost: "OLD.TEST", rawRequest: raw })), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetHost: "new.test", rawRequest: raw.replace("Cookie", "X-Test") })), false);
   const editedHost = raw.replace("old.test", "other.test");
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: editedHost }), true);
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: raw }), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: editedHost })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw })), false);
   const ipv6 = "GET / HTTP/1.1\r\nHost: [2001:db8::1]\r\nCookie: session=1\r\n\r\n";
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "2001:db8::1", targetHost: "2001:db8::1", rawRequest: ipv6 }), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ sourceHost: "2001:db8::1", targetHost: "2001:db8::1", rawRequest: ipv6 })), false);
   const authority = "GET / HTTP/1.1\r\nHost: OTHER.test:8443\r\nAuthorization: Bearer 1\r\n\r\n";
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: authority }), true);
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "other.test", targetHost: "other.test", rawRequest: authority }), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: authority })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ sourceHost: "other.test", targetHost: "other.test", sourcePort: 8443, targetPort: 8443, rawRequest: authority })), false);
   const absoluteForeign = "GET https://other.test/path HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: absoluteForeign }), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: absoluteForeign })), true);
   const absoluteSame = "GET https://old.test/path HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
-  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: absoluteSame }), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: absoluteSame })), false);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetScheme: "http", targetPort: 80, rawRequest: raw })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ targetPort: 8443, rawRequest: raw })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: absoluteSame.replace("https://", "http://") })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw.replace("Host: old.test", "Host:") })), true);
+  assert.equal(requiresSensitiveHostConfirmation(confirmationOptions({ rawRequest: raw.replace("GET /", "GET https://[::1") })), true);
 });
