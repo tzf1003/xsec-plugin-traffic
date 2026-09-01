@@ -27,4 +27,8 @@ test("replay confirmation is derived from the target and sensitive request heade
   const authority = "GET / HTTP/1.1\r\nHost: OTHER.test:8443\r\nAuthorization: Bearer 1\r\n\r\n";
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: authority }), true);
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "other.test", targetHost: "other.test", rawRequest: authority }), false);
+  const absoluteForeign = "GET https://other.test/path HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: absoluteForeign }), true);
+  const absoluteSame = "GET https://old.test/path HTTP/1.1\r\nHost: old.test\r\nCookie: session=1\r\n\r\n";
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: absoluteSame }), false);
 });

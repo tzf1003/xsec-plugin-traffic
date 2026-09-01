@@ -44,11 +44,17 @@ export function requiresSensitiveHostConfirmation(options: {
 }): boolean {
   const normalized = options.rawRequest.replace(/\r\n/gu, "\n");
   const head = normalized.split("\n\n", 1)[0] ?? normalized;
-  const requestHost = head.split("\n").slice(1).find((line) => /^host\s*:/iu.test(line))?.replace(/^host\s*:/iu, "").trim();
+  const lines = head.split("\n");
+  const requestHost = lines.slice(1).find((line) => /^host\s*:/iu.test(line))?.replace(/^host\s*:/iu, "").trim();
   const sourceHost = normalizeAuthorityHost(options.sourceHost);
   const targetHost = normalizeAuthorityHost(options.targetHost);
-  const requestAuthority = requestHost ? normalizeAuthorityHost(requestHost) : sourceHost;
-  if (sourceHost === targetHost && sourceHost === requestAuthority) return false;
+  const requestAuthority = requestHost ? normalizeAuthorityHost(requestHost) : undefined;
+  const absoluteAuthority = parseAbsoluteFormAuthority(lines[0] ?? "");
+  if (
+    sourceHost === targetHost
+    && (requestAuthority === undefined || sourceHost === requestAuthority)
+    && (absoluteAuthority === undefined || sourceHost === absoluteAuthority)
+  ) return false;
   return head.split("\n").slice(1).some((line) => {
     if (line.startsWith(" ") || line.startsWith("\t")) return false;
     const separator = line.indexOf(":");
@@ -56,6 +62,16 @@ export function requiresSensitiveHostConfirmation(options: {
     const name = line.slice(0, separator).trim().toLowerCase();
     return name === "authorization" || name === "cookie";
   });
+}
+
+function parseAbsoluteFormAuthority(startLine: string): string | undefined {
+  const requestTarget = startLine.trim().split(/\s+/u)[1];
+  if (!requestTarget || !/^https?:\/\//iu.test(requestTarget)) return undefined;
+  try {
+    return normalizeAuthorityHost(new URL(requestTarget).host);
+  } catch {
+    return undefined;
+  }
 }
 
 function normalizeAuthorityHost(value: string): string {
