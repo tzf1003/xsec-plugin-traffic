@@ -14,6 +14,7 @@ export function useWorkbenchState() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detailRevision, setDetailRevision] = useState(0);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -34,7 +35,7 @@ export function useWorkbenchState() {
   const prepareListTransition = useCallback(() => {
     listRequest.current += 1; detailRequest.current += 1;
     setRows([]); setSelectedId(null); setDetail(null); setDetailLoading(false); setDetailError(null);
-    setNextCursor(null); setHasNewTraffic(false); setLoading(true);
+    setNextCursor(null); setListError(null); setLoading(true);
   }, []);
   const resetPagination = useCallback(() => {
     prepareListTransition(); setCursor(undefined); setPrevious([]); setPage(1);
@@ -42,7 +43,7 @@ export function useWorkbenchState() {
   return {
     defaults, setDefaults, filter, setFilter, rows, setRows, selectedId, setSelectedId,
     detail, setDetail, loading, setLoading, detailLoading, setDetailLoading, error, setError,
-    detailError, setDetailError, detailRevision, setDetailRevision,
+    detailError, setDetailError, detailRevision, setDetailRevision, listError, setListError,
     filterOpen, setFilterOpen, listHeight, setListHeight, cursor, setCursor, previous, setPrevious,
     nextCursor, setNextCursor, page, setPage, revision, setRevision, settingsRevision,
     setSettingsRevision, hasNewTraffic, setHasNewTraffic, workbenchRef, cursorRef, listRequest,

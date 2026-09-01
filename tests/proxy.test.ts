@@ -19,4 +19,7 @@ test("replay confirmation is derived from the target and sensitive request heade
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw }), true);
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "OLD.TEST", rawRequest: raw }), false);
   assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "new.test", rawRequest: raw.replace("Cookie", "X-Test") }), false);
+  const editedHost = raw.replace("old.test", "other.test");
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: editedHost }), true);
+  assert.equal(requiresSensitiveHostConfirmation({ sourceHost: "old.test", targetHost: "old.test", rawRequest: raw }), false);
 });

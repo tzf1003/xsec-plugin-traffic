@@ -30,12 +30,15 @@ function TrafficToolbar({ model }: { model: WorkbenchModel }) {
 }
 
 function TrafficError({ model }: { model: WorkbenchModel }) {
-  if (!model.error) return null;
-  const retry = model.defaults
-    ? null
-    : <Button onClick={() => model.setSettingsRevision((value) => value + 1)}>重新读取</Button>;
-  const dismiss = model.defaults ? () => model.setError(null) : undefined;
-  return <Notice onClose={dismiss} action={retry}>{model.error}</Notice>;
+  const message = model.listError ?? model.error;
+  if (!message) return null;
+  const retry = model.listError
+    ? <Button onClick={() => model.setRevision((value) => value + 1)}>重新读取</Button>
+    : model.defaults ? null : <Button onClick={() => model.setSettingsRevision((value) => value + 1)}>重新读取</Button>;
+  const dismiss = model.listError
+    ? () => model.setListError(null)
+    : model.defaults ? () => model.setError(null) : undefined;
+  return <Notice onClose={dismiss} action={retry}>{message}</Notice>;
 }
 
 function NewTrafficNotice({ model }: { model: WorkbenchModel }) {

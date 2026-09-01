@@ -42,9 +42,13 @@ export function requiresSensitiveHostConfirmation(options: {
   targetHost: string;
   rawRequest: string;
 }): boolean {
-  if (options.sourceHost.toLowerCase() === options.targetHost.trim().toLowerCase()) return false;
   const normalized = options.rawRequest.replace(/\r\n/gu, "\n");
   const head = normalized.split("\n\n", 1)[0] ?? normalized;
+  const requestHost = head.split("\n").slice(1).find((line) => /^host\s*:/iu.test(line))?.replace(/^host\s*:/iu, "").trim();
+  const sourceHost = normalizeAuthorityHost(options.sourceHost);
+  const targetHost = normalizeAuthorityHost(options.targetHost);
+  const requestAuthority = requestHost ? normalizeAuthorityHost(requestHost) : sourceHost;
+  if (sourceHost === targetHost && sourceHost === requestAuthority) return false;
   return head.split("\n").slice(1).some((line) => {
     if (line.startsWith(" ") || line.startsWith("\t")) return false;
     const separator = line.indexOf(":");
@@ -52,6 +56,18 @@ export function requiresSensitiveHostConfirmation(options: {
     const name = line.slice(0, separator).trim().toLowerCase();
     return name === "authorization" || name === "cookie";
   });
+}
+
+function normalizeAuthorityHost(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized.startsWith("[")) {
+    const closing = normalized.indexOf("]");
+    return closing > 0 ? normalized.slice(1, closing) : normalized;
+  }
+  const separator = normalized.lastIndexOf(":");
+  return separator > 0 && /^\d+$/u.test(normalized.slice(separator + 1))
+    ? normalized.slice(0, separator)
+    : normalized;
 }
 
 export function ensureHost(raw: string, options: {
