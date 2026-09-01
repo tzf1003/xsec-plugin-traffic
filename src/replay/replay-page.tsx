@@ -81,9 +81,9 @@ function ReplayFooter({ model, meta }: { model: ReplayModel; meta: string }) {
 
 function ReplayConfirmation({ model }: { model: ReplayModel }) {
   if (!model.confirmOpen) return null;
-  const close = () => { model.confirmation.current = undefined; model.setConfirmOpen(false); };
-  const confirm = () => { close(); void model.send(true); };
-  return <Dialog title="确认向新 Host 发送敏感 Header？" width={520} onClose={close} footer={<><Button onClick={close}>取消</Button><Button tone="danger" onClick={confirm}>确认并重放</Button></>}><p>连接目标与原始流量不同，请求仍包含 Cookie 或 Authorization。请确认目标属于当前授权范围。</p></Dialog>;
+  const cancel = () => { model.confirmation.current = undefined; model.setConfirmOpen(false); };
+  const confirm = () => { model.setConfirmOpen(false); void model.send(true); };
+  return <Dialog title="确认向新 Host 发送敏感 Header？" width={520} onClose={cancel} footer={<><Button onClick={cancel}>取消</Button><Button tone="danger" onClick={confirm}>确认并重放</Button></>}><p>连接目标与原始流量不同，请求仍包含 Cookie 或 Authorization。请确认目标属于当前授权范围。</p></Dialog>;
 }
 
 export function ReplayPage({ host, context, flowId }: { host: PluginHost; context: WorkspaceToolContext; flowId: string }) {
