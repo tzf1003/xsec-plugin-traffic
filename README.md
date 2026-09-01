@@ -37,7 +37,8 @@ and verifies that the generated module is self-contained and loadable.
 
 Before publishing a Beta source revision, run `pnpm verify` and validate the
 declared plugin directory with the XSEC Desktop release tooling. The published
-source revision must include the generated frontend artifact.
+source revision must include the generated frontend artifact. Factory records
+the exact Beta and Stable source revisions with the immutable release.
 
 Marketplace artifacts, release indexes, signatures, and Factory adoption proof
 remain in [tzf1003/xsec-plugins](https://github.com/tzf1003/xsec-plugins).
