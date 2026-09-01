@@ -9,12 +9,13 @@ export function DetailPage({ host, flowId }: { host: PluginHost; flowId: string 
   const [detail, setDetail] = useState<TrafficDetail>();
   const [error, setError] = useState<string>();
   const [actionError, setActionError] = useState<string>();
+  const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true; setError(undefined); setActionError(undefined); setDetail(undefined);
     void getTraffic(host, flowId).then((value) => { if (active) setDetail(value); }).catch((reason) => { if (active) setError(String(reason)); });
     return () => { active = false; };
-  }, [flowId, host]);
-  if (error) return <Notice>{`读取流量详情失败：${error}`}</Notice>;
+  }, [flowId, host, revision]);
+  if (error) return <Notice action={<Button onClick={() => { setError(undefined); setRevision((value) => value + 1); }}>重新加载</Button>}>{`读取流量详情失败：${error}`}</Notice>;
   if (!detail) return <Spinner label="正在加载流量详情…" />;
   const snapshot = flowSnapshot(detail.payload);
   const rawRequest = requestRaw(detail); const rawResponse = responseRaw(detail);

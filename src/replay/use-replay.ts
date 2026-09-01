@@ -40,8 +40,7 @@ async function reconcileReplayResponse(options: {
     applyLatestDraft(history, state);
   } catch (reason) {
     const refreshError = `刷新重放历史失败：${String(reason)}`;
-    const feedback = replayFeedback(response);
-    state.setError(feedback.kind === "error" ? `${feedback.message}；${refreshError}` : `重放操作已完成，但${refreshError}`);
+    state.setHistoryError(refreshError);
   }
 }
 
@@ -71,17 +70,19 @@ function useReplayHistory(options: { host: PluginHost; flowId: string; state: Re
   const identity = useRef({ host, flowId }); identity.current = { host, flowId };
   return useCallback((selectLatest: boolean) => {
     const requested = { host, flowId };
+    state.setHistoryError(undefined);
     const request = tail.current.then(async () => {
       const history = await getReplayAttempts(host, flowId);
       const current = identity.current;
       if (current.host === requested.host && current.flowId === requested.flowId) {
+        state.setHistoryError(undefined);
         state.replaceAttempts(history, selectLatest);
       }
       return history;
     });
     tail.current = request.then(() => undefined, () => undefined);
     return request;
-  }, [flowId, host, state.replaceAttempts]);
+  }, [flowId, host, state.replaceAttempts, state.setHistoryError]);
 }
 
 async function sendReplay(options: {
@@ -134,7 +135,7 @@ export function useReplay(host: PluginHost, flowId: string, visible: boolean) {
   useReplaySource({ host, flowId, state, refreshHistory });
   useReplayResult({ host, resultId: selected?.result_flow_id, state });
   useReplayLayout(state);
-  useReplayEvents({ host, visible, refreshHistory, setError: state.setError });
+  useReplayEvents({ host, visible, refreshHistory, setHistoryError: state.setHistoryError });
   const selectAttempt = (index: number) => {
     const attempt = state.attempts[index]; if (!attempt) return;
     state.drafts.current.set(state.selectedId ?? "draft", state.rawRequest);

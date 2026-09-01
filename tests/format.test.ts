@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compactParameterLabel, extensionLabel, formatBytes, mimeLabel, parameterLabel, requestTarget, sourceLabel } from "../src/format";
+import { compactParameterLabel, extensionLabel, formatBytes, mimeLabel, parameterLabel, requestTarget, sourceLabel, statusClass } from "../src/format";
 import type { TrafficSummary } from "../src/types";
 
 const summary = {
@@ -28,4 +28,9 @@ test("parameter labels distinguish missing metadata from an explicit false value
   assert.equal(parameterLabel(undefined), "—");
   assert.equal(compactParameterLabel(false), "无参");
   assert.equal(parameterLabel(false), "无");
+});
+
+test("status styles distinguish informational responses from success", () => {
+  assert.equal(statusClass(101), "status-informational");
+  assert.equal(statusClass(204), "status-success");
 });

@@ -22,7 +22,7 @@ function ReplayToolbar({ model }: { model: ReplayModel }) {
   const historyIndex = model.selectedIndex < 0 ? 0 : model.selectedIndex + 1;
   return <header className="replay-toolbar">
     <div className="replay-actions"><Button tone="primary" icon="play" disabled={sendDisabled} onClick={() => void model.send(false)}>{model.sending ? "发送中…" : "发送"}</Button>
-      <div className="replay-history"><IconButton label="上一次重放" icon="arrow-left" disabled={model.selectedIndex <= 0} onClick={() => model.selectAttempt(model.selectedIndex - 1)} /><strong>{historyIndex}/{model.attempts.length}</strong><IconButton label="下一次重放" icon="arrow-right" disabled={nextDisabled} onClick={() => model.selectAttempt(model.selectedIndex + 1)} /><IconButton label="刷新重放历史" icon="refresh" onClick={() => void model.refreshHistory(false).catch((reason) => model.setError(String(reason)))} /></div>
+      <div className="replay-history"><IconButton label="上一次重放" icon="arrow-left" disabled={model.selectedIndex <= 0} onClick={() => model.selectAttempt(model.selectedIndex - 1)} /><strong>{historyIndex}/{model.attempts.length}</strong><IconButton label="下一次重放" icon="arrow-right" disabled={nextDisabled} onClick={() => model.selectAttempt(model.selectedIndex + 1)} /><IconButton label="刷新重放历史" icon="refresh" onClick={() => void model.refreshHistory(false).catch((reason) => model.setHistoryError(`刷新重放历史失败：${String(reason)}`))} /></div>
     </div>
     <div className="replay-target-summary"><span>{model.scheme.toUpperCase()}</span><code>{model.targetHost || "未设置"}:{model.targetPort}</code><Button icon="settings" tone="ghost" onClick={() => model.setConnectionOpen(!model.connectionOpen)}>连接设置</Button></div>
   </header>;
@@ -44,6 +44,7 @@ function ReplayConnection({ model }: { model: ReplayModel }) {
 function ReplayNotices({ model }: { model: ReplayModel }) {
   return <div className="replay-notice">
     {model.error ? <Notice onClose={() => model.setError(undefined)}>{model.error}</Notice> : null}
+    {model.historyError ? <Notice onClose={() => model.setHistoryError(undefined)}>{model.historyError}</Notice> : null}
     {model.resultError ? <Notice onClose={() => model.setResultError(undefined)}>{model.resultError}</Notice> : null}
     {model.notice ? <Notice tone="success" onClose={() => model.setNotice(undefined)}>{model.notice}</Notice> : null}
   </div>;

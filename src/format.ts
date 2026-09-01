@@ -63,6 +63,7 @@ export function methodClass(method: string): string {
 
 export function statusClass(status: number | null | undefined): string {
   if (status == null) return "status-empty";
+  if (status < 200) return "status-informational";
   if (status < 300) return "status-success";
   if (status < 400) return "status-redirection";
   if (status < 500) return "status-client";

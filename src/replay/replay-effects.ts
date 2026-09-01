@@ -24,6 +24,7 @@ function applySource(options: {
   state.setSource(detail); state.setScheme(activeScheme);
   state.setTargetHost(latest?.target_host || detail.host);
   state.setTargetPort(latest?.target_port ?? detail.port ?? (activeScheme === "https" ? 443 : 80));
+  state.attemptsRef.current = history; state.selectedIdRef.current = latest?.id ?? null;
   state.setAttempts(history); state.setSelectedId(latest?.id ?? null);
   state.setRawRequest(latest?.request_raw ?? initial);
 }
@@ -68,9 +69,9 @@ export function useReplayLayout(state: ReplayState) {
 
 export function useReplayEvents(options: {
   host: PluginHost; visible: boolean; refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
-  setError: ReplayState["setError"];
+  setHistoryError: ReplayState["setHistoryError"];
 }) {
-  const { host, visible, refreshHistory, setError } = options;
+  const { host, visible, refreshHistory, setHistoryError } = options;
   const previousVisible = useRef(visible);
   useEffect(() => {
     let timer: number | undefined;
@@ -78,14 +79,14 @@ export function useReplayEvents(options: {
       if (timer !== undefined) window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         timer = undefined;
-        void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
+        void refreshHistory(false).catch((reason) => setHistoryError(`刷新重放历史失败：${String(reason)}`));
       }, EVENT_COALESCE_MS);
     };
     const becameVisible = visible && !previousVisible.current;
     previousVisible.current = visible;
     if (!visible) return;
     if (becameVisible) {
-      void refreshHistory(false).catch((reason) => setError(`刷新重放历史失败：${String(reason)}`));
+      void refreshHistory(false).catch((reason) => setHistoryError(`刷新重放历史失败：${String(reason)}`));
     }
     const subscription = host.onData("xsec.traffic.persisted", reconcile);
     return () => {
