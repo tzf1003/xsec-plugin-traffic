@@ -21,8 +21,8 @@ function pageSummary(model: WorkbenchModel): string {
 
 function TrafficToolbar({ model }: { model: WorkbenchModel }) {
   return <header className="traffic-toolbar">
-    <label className="traffic-search"><span className="sr-only">搜索当前会话流量</span><Icon name="search" /><input className="x-input" value={model.filter.searchTerm} placeholder="搜索方法、主机、URL、状态码或 MIME" onInput={(event) => model.applyFilter({ ...model.filter, searchTerm: event.currentTarget.value })} /></label>
-    <div className="traffic-filter-button"><Button icon="filter" onClick={() => model.setFilterOpen(true)}>筛选</Button><FilterCount count={model.activeFilters} /></div>
+    <label className="traffic-search"><span className="sr-only">搜索当前会话流量</span><Icon name="search" /><input className="x-input" disabled={!model.defaults} value={model.filter.searchTerm} placeholder="搜索方法、主机、URL、状态码或 MIME" onInput={(event) => model.applyFilter({ ...model.filter, searchTerm: event.currentTarget.value })} /></label>
+    <div className="traffic-filter-button"><Button icon="filter" disabled={!model.defaults} onClick={() => model.setFilterOpen(true)}>筛选</Button><FilterCount count={model.activeFilters} /></div>
     <div className="traffic-scope" title={model.sessionId}><span>仅当前会话</span><code>{model.sessionId.slice(0, 12)}</code><em>{pageSummary(model)}</em></div>
     <div className="traffic-pages"><IconButton label="上一页流量" icon="arrow-left" disabled={!model.previous.length || model.loading} onClick={model.previousPage} /><strong>第 {model.page} 页</strong><IconButton label="下一页流量" icon="arrow-right" disabled={!model.nextCursor || model.loading} onClick={model.nextPage} /></div>
     <IconButton label="刷新当前会话流量" icon="refresh" disabled={model.loading} onClick={() => model.setRevision((value) => value + 1)} />

@@ -3,6 +3,7 @@ import type { ReplayAttempt, TrafficDetail } from "../types";
 
 export function useReplayState() {
   const [source, setSource] = useState<TrafficDetail>();
+  const [sourceRevision, setSourceRevision] = useState(0);
   const [rawRequest, setRawRequest] = useState("");
   const [scheme, setScheme] = useState<"http" | "https">("https");
   const [targetHost, setTargetHost] = useState("");
@@ -27,7 +28,7 @@ export function useReplayState() {
     setSelectedId((current) => selectLatest ? items.at(-1)?.id ?? null : current && items.some((item) => item.id === current) ? current : items.at(-1)?.id ?? null);
   }, []);
   return {
-    source, setSource, rawRequest, setRawRequest, scheme, setScheme, targetHost, setTargetHost,
+    source, setSource, sourceRevision, setSourceRevision, rawRequest, setRawRequest, scheme, setScheme, targetHost, setTargetHost,
     targetPort, setTargetPort, attempts, setAttempts, selectedId, setSelectedId, result, setResult,
     loading, setLoading, resultLoading, setResultLoading, sending, setSending, error, setError,
     resultError, setResultError, notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,

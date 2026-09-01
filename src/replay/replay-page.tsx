@@ -88,7 +88,7 @@ function ReplayConfirmation({ model }: { model: ReplayModel }) {
 export function ReplayPage({ host, context, flowId }: { host: PluginHost; context: WorkspaceToolContext; flowId: string }) {
   const model = useReplay(host, flowId, context.visible);
   if (model.loading && !model.source) return <Spinner label="加载重放请求…" />;
-  if (!model.source && model.error) return <Notice>{model.error}</Notice>;
+  if (!model.source && model.error) return <Notice action={<Button onClick={() => model.setSourceRevision((value) => value + 1)}>重新加载</Button>}>{model.error}</Notice>;
   const meta = replayResponseMeta(model);
   const navigateHistory = (event: KeyboardEvent) => {
     if (!event.altKey) return;

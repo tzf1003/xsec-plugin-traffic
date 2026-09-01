@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "preact/hooks";
-import { getReplayAttempts, getTraffic } from "../api/traffic";
+import { getTraffic } from "../api/traffic";
 import { ensureHost, requestRaw } from "../proxy";
 import type { PluginHost, ReplayAttempt, TrafficDetail } from "../types";
 import type { ReplayState } from "./replay-state";
+import { replayScheme } from "./target";
 
 const STACK_THRESHOLD = 780;
 const EVENT_COALESCE_MS = 180;
@@ -11,32 +12,34 @@ function applySource(options: {
   state: ReplayState; detail: TrafficDetail; history: ReplayAttempt[];
 }) {
   const { state, detail, history } = options;
-  const scheme = detail.scheme === "http" ? "http" : "https";
+  const scheme = replayScheme(detail.scheme);
   const initial = ensureHost(requestRaw(detail), {
     host: detail.host,
     port: detail.port,
     scheme,
   });
   const latest = history.at(-1);
+  const activeScheme = latest ? replayScheme(latest.scheme) : scheme;
   state.drafts.current = new Map([["draft", initial], ...history.map((item) => [item.id, item.request_raw] as const)]);
-  state.setSource(detail); state.setScheme(latest?.scheme === "http" ? "http" : scheme);
+  state.setSource(detail); state.setScheme(activeScheme);
   state.setTargetHost(latest?.target_host || detail.host);
-  state.setTargetPort(latest?.target_port ?? detail.port ?? (scheme === "https" ? 443 : 80));
+  state.setTargetPort(latest?.target_port ?? detail.port ?? (activeScheme === "https" ? 443 : 80));
   state.setAttempts(history); state.setSelectedId(latest?.id ?? null);
   state.setRawRequest(latest?.request_raw ?? initial);
 }
 
-export function useReplaySource({ host, flowId, state }: {
+export function useReplaySource({ host, flowId, state, refreshHistory }: {
   host: PluginHost; flowId: string; state: ReplayState;
+  refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
 }) {
   useEffect(() => {
     let active = true; state.setLoading(true); state.setError(undefined);
-    void Promise.all([getTraffic(host, flowId), getReplayAttempts(host, flowId)])
+    void Promise.all([getTraffic(host, flowId), refreshHistory(false)])
       .then(([detail, history]) => { if (active) applySource({ state, detail, history }); })
       .catch((reason) => { if (active) state.setError(`加载重放请求失败：${String(reason)}`); })
       .finally(() => { if (active) state.setLoading(false); });
     return () => { active = false; };
-  }, [flowId, host]);
+  }, [flowId, host, refreshHistory, state.sourceRevision]);
 }
 
 export function useReplayResult({ host, resultId, state }: {

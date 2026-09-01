@@ -1,6 +1,10 @@
 export const MIN_REPLAY_PORT = 1;
 export const MAX_REPLAY_PORT = 65_535;
 
+export function replayScheme(value: string): "http" | "https" {
+  return value === "http" ? "http" : "https";
+}
+
 export function replayTargetError(host: string, port: number): string | undefined {
   if (!host.trim()) return "请输入连接目标";
   if (!Number.isInteger(port) || port < MIN_REPLAY_PORT || port > MAX_REPLAY_PORT) {

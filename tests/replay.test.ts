@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { replayFeedback } from "../src/replay/feedback";
-import { replayTargetError } from "../src/replay/target";
+import { replayScheme, replayTargetError } from "../src/replay/target";
 import type { ReplayAttempt } from "../src/types";
 
 test("replay targets require a host and a valid TCP port", () => {
@@ -10,6 +10,11 @@ test("replay targets require a host and a valid TCP port", () => {
   assert.match(replayTargetError("example.test", 65_536) ?? "", /端口/u);
   assert.match(replayTargetError("example.test", 443.5) ?? "", /端口/u);
   assert.equal(replayTargetError("example.test", 443), undefined);
+});
+
+test("replay attempts restore their recorded transport scheme", () => {
+  assert.equal(replayScheme("http"), "http");
+  assert.equal(replayScheme("https"), "https");
 });
 
 test("replay feedback keeps recorded failures distinct from completions", () => {
