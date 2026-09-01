@@ -83,6 +83,7 @@ function requestAuthoritiesMatchSource(rawRequest: string, sourceOrigin: ReplayO
 function parseAbsoluteFormOrigin(startLine: string): ReplayOrigin | null | undefined {
   const requestTarget = startLine.trim().split(/\s+/u)[1];
   if (!requestTarget || !/^https?:\/\//iu.test(requestTarget)) return undefined;
+  if (requestTarget.includes("\\")) return null;
   try {
     return urlOrigin(new URL(requestTarget)) ?? null;
   } catch {
