@@ -62,7 +62,7 @@ export function useTrafficDetailEffect(options: {
     }).catch((reason) => { if (state.detailRequest.current === requestId) state.setDetailError(`读取流量详情失败：${String(reason)}`); })
       .finally(() => { if (state.detailRequest.current === requestId) state.setDetailLoading(false); });
     return () => { state.detailRequest.current += 1; };
-  }, [host, state.selectedId, visible]);
+  }, [host, state.selectedId, state.detailRevision, visible]);
 }
 
 export function useTrafficEvents({ host, visible, state }: {

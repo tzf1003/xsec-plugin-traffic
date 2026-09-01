@@ -15,6 +15,7 @@ export function useWorkbenchState() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailRevision, setDetailRevision] = useState(0);
   const [filterOpen, setFilterOpen] = useState(false);
   const [listHeight, setListHeight] = useState(DEFAULT_LIST_HEIGHT);
   const [cursor, setCursor] = useState<string>();
@@ -41,7 +42,7 @@ export function useWorkbenchState() {
   return {
     defaults, setDefaults, filter, setFilter, rows, setRows, selectedId, setSelectedId,
     detail, setDetail, loading, setLoading, detailLoading, setDetailLoading, error, setError,
-    detailError, setDetailError,
+    detailError, setDetailError, detailRevision, setDetailRevision,
     filterOpen, setFilterOpen, listHeight, setListHeight, cursor, setCursor, previous, setPrevious,
     nextCursor, setNextCursor, page, setPage, revision, setRevision, settingsRevision,
     setSettingsRevision, hasNewTraffic, setHasNewTraffic, workbenchRef, cursorRef, listRequest,

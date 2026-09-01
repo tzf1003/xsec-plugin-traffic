@@ -43,7 +43,7 @@ function NewTrafficNotice({ model }: { model: WorkbenchModel }) {
 }
 
 function TrafficAlerts({ model }: { model: WorkbenchModel }) {
-  return <div className="traffic-alert-slot"><TrafficError model={model} />{model.detailError ? <Notice onClose={() => model.setDetailError(null)}>{model.detailError}</Notice> : null}<NewTrafficNotice model={model} /></div>;
+  return <div className="traffic-alert-slot"><TrafficError model={model} />{model.detailError ? <Notice action={<Button onClick={() => { model.setDetailError(null); model.setDetailRevision((value) => value + 1); }}>重新加载详情</Button>} onClose={() => model.setDetailError(null)}>{model.detailError}</Notice> : null}<NewTrafficNotice model={model} /></div>;
 }
 
 function TrafficTableArea({ model }: { model: WorkbenchModel }) {

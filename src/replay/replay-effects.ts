@@ -54,7 +54,7 @@ export function useReplayResult({ host, resultId, state }: {
       .catch((reason) => { if (active) state.setResultError(`读取重放结果失败：${String(reason)}`); })
       .finally(() => { if (active) state.setResultLoading(false); });
     return () => { active = false; };
-  }, [host, resultId]);
+  }, [host, resultId, state.resultRevision]);
 }
 
 export function useReplayLayout(state: ReplayState) {

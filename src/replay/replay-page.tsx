@@ -38,14 +38,14 @@ function ReplayConnection({ model }: { model: ReplayModel }) {
       return next === "https" ? 443 : 80;
     });
   };
-  return <div className="replay-targets"><Field label="协议"><select value={model.scheme} onChange={(event) => changeScheme(event.currentTarget.value)}><option value="https">HTTPS</option><option value="http">HTTP</option></select></Field><Field label="连接目标 / SNI"><input value={model.targetHost} onInput={(event) => model.setTargetHost(event.currentTarget.value)} /></Field><Field label="端口"><input type="number" min={MIN_REPLAY_PORT} max={MAX_REPLAY_PORT} value={model.targetPort} onInput={(event) => model.setTargetPort(Number(event.currentTarget.value))} /></Field><p>HTTP Host 直接编辑下方请求报文中的 Host Header。</p></div>;
+  return <div className="replay-targets"><Field label="协议"><select disabled={model.sending} value={model.scheme} onChange={(event) => changeScheme(event.currentTarget.value)}><option value="https">HTTPS</option><option value="http">HTTP</option></select></Field><Field label="连接目标 / SNI"><input disabled={model.sending} value={model.targetHost} onInput={(event) => model.setTargetHost(event.currentTarget.value)} /></Field><Field label="端口"><input disabled={model.sending} type="number" min={MIN_REPLAY_PORT} max={MAX_REPLAY_PORT} value={model.targetPort} onInput={(event) => model.setTargetPort(Number(event.currentTarget.value))} /></Field><p>HTTP Host 直接编辑下方请求报文中的 Host Header。</p></div>;
 }
 
 function ReplayNotices({ model }: { model: ReplayModel }) {
   return <div className="replay-notice">
     {model.error ? <Notice onClose={() => model.setError(undefined)}>{model.error}</Notice> : null}
     {model.historyError ? <Notice onClose={() => model.setHistoryError(undefined)}>{model.historyError}</Notice> : null}
-    {model.resultError ? <Notice onClose={() => model.setResultError(undefined)}>{model.resultError}</Notice> : null}
+    {model.resultError ? <Notice action={<Button onClick={() => { model.setResultError(undefined); model.setResultRevision((value) => value + 1); }}>重新加载结果</Button>} onClose={() => model.setResultError(undefined)}>{model.resultError}</Notice> : null}
     {model.notice ? <Notice tone="success" onClose={() => model.setNotice(undefined)}>{model.notice}</Notice> : null}
   </div>;
 }

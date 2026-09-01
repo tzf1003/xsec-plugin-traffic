@@ -19,6 +19,7 @@ export function useReplayState() {
   const [attempts, setAttempts] = useState<ReplayAttempt[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [result, setResult] = useState<TrafficDetail>();
+  const [resultRevision, setResultRevision] = useState(0);
   const [loading, setLoading] = useState(true);
   const [resultLoading, setResultLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -47,6 +48,7 @@ export function useReplayState() {
   return {
     source, setSource, sourceRevision, setSourceRevision, rawRequest, setRawRequest, scheme, setScheme, targetHost, setTargetHost,
     targetPort, setTargetPort, attempts, setAttempts, selectedId, setSelectedId, result, setResult,
+    resultRevision, setResultRevision,
     loading, setLoading, resultLoading, setResultLoading, sending, setSending, error, setError,
     historyError, setHistoryError,
     resultError, setResultError, notice, setNotice, connectionOpen, setConnectionOpen, confirmOpen, setConfirmOpen, panePercent,
