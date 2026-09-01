@@ -82,6 +82,8 @@ async function verifyGeneratedFrontend(): Promise<void> {
     context: { kind: "settings-page", settings: { id: "traffic", page: "traffic" } },
   });
   assert.equal(typeof controller.mount, "function");
+  assert.equal(typeof controller.update, "function");
+  assert.equal(typeof controller.dispose, "function");
 }
 
 test("generated frontend is a loadable self-contained ESM controller", verifyGeneratedFrontend);
