@@ -41,7 +41,7 @@ source revision must include the generated frontend artifact. Factory records
 the exact Beta and Stable source revisions with the immutable release.
 
 Use the exact candidate commit for both channel checks. Source verification is
-defined by `.github/workflows/ci.yml`: Node 24, pnpm 10.34.5, and the frozen
+defined by `.github/workflows/ci.yml`: Node 24.19.0, pnpm 10.34.5, and the frozen
 lockfile must reproduce the committed frontend without a diff:
 
 ```bash
@@ -53,7 +53,7 @@ pnpm verify
 git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
 ```
 
-The version commands must report Node 24.x and pnpm 10.34.5. Any install,
+The version commands must report Node v24.19.0 and pnpm 10.34.5. Any install,
 verification, test, or generated-artifact diff failure rejects the source
 revision. Record the source SHA and the successful `manifest` and
 `source-preflight / source-preflight` run URLs.
@@ -70,7 +70,7 @@ the release ID, and the artifact digest. Any mismatch or missing KMS/source-gate
 proof rejects promotion.
 
 Desktop acceptance follows the
-[official marketplace smoke contract](https://github.com/tzf1003/xSecDesktop/blob/main/desktop/docs/plugins/official-marketplace-smoke.md).
+[official marketplace smoke contract](https://github.com/tzf1003/xSecDesktop/blob/main/docs/plugins/official-marketplace-smoke.md).
 The protected workflow runs the locked Desktop host command below against the
 exact Factory revision and requested channel, using a new temporary profile:
 
