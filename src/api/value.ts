@@ -1,4 +1,4 @@
-/** Require a named API value to be a plain object. */
+/** Require a named API value to be a non-null, non-array object. */
 export function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name}格式无效`);
   return value as Record<string, unknown>;
