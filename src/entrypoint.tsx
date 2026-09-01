@@ -31,6 +31,7 @@ function readInitialContext(host: PluginHost): PluginContext | undefined {
   return parseContext(host.context);
 }
 
+/** Activate the Traffic controller for one Desktop host bridge. */
 export function activate(host: PluginHost): Controller {
   if (host.apiVersion !== 2) throw new Error(`不支持的 Frontend API：${host.apiVersion}`);
   console.debug("traffic.frontend.activate", { apiVersion: host.apiVersion });
@@ -43,6 +44,7 @@ export function activate(host: PluginHost): Controller {
     render(<PluginApp host={host} context={current} />, root);
   };
   return {
+    /** Mount the Traffic UI into the host-owned root with its initial context. */
     mount(nextRoot, context) {
       root = nextRoot;
       current = parseContext(context);
@@ -54,6 +56,7 @@ export function activate(host: PluginHost): Controller {
       themeSubscription = host.onTheme(applyTheme);
       draw();
     },
+    /** Apply the current workspace-tool or settings-page context. */
     update(context) {
       current = parseContext(context);
       console.debug("traffic.frontend.update", {
@@ -62,6 +65,7 @@ export function activate(host: PluginHost): Controller {
       });
       draw();
     },
+    /** Release theme subscriptions, rendered content, and retained UI state. */
     dispose() {
       console.debug("traffic.frontend.dispose");
       themeSubscription?.dispose(); themeSubscription = undefined;
