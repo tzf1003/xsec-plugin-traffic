@@ -33,6 +33,12 @@ Commit the generated frontend artifact together with its source changes. The
 test suite checks the manifest/activation contract, filter and replay helpers,
 and verifies that the generated module is self-contained and loadable.
 
+## Release verification
+
+Before publishing a Beta source revision, run `pnpm verify` and validate the
+declared plugin directory with the XSEC Desktop release tooling. The published
+source revision must include the generated frontend artifact.
+
 Marketplace artifacts, release indexes, signatures, and Factory adoption proof
 remain in [tzf1003/xsec-plugins](https://github.com/tzf1003/xsec-plugins).
 This source repository never stores Factory credentials or KMS material.
