@@ -37,7 +37,8 @@ test("manifest activates every restored surface through plugin contributions", a
   assert.deepEqual(Object.keys(extension.contributes.settingsPages), ["traffic"]);
 });
 
-test("generated frontend is a loadable self-contained ESM controller", async () => {
+/** Verify the generated frontend module and its delegated lifecycle contract. */
+async function verifyGeneratedFrontend(): Promise<void> {
   const source = await readFile(frontendPath, "utf8");
   assert.match(source, /export\s+function\s+activate\s*\(\s*host\s*\)/u);
   for (const method of ["mount", "update", "dispose"]) {
@@ -68,4 +69,6 @@ test("generated frontend is a loadable self-contained ESM controller", async () 
     context: { kind: "settings-page", settings: { id: "traffic", page: "traffic" } },
   });
   assert.equal(typeof controller.mount, "function");
-});
+}
+
+test("generated frontend is a loadable self-contained ESM controller", verifyGeneratedFrontend);

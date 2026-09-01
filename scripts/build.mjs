@@ -3,6 +3,18 @@ import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const output = resolve("plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js");
+const frontendFooter = `/** Activate the Traffic frontend and expose its host lifecycle. */
+export function activate(host){
+  const controller=__xsecTrafficFrontend.activate(host);
+  return{
+    /** Mount the active Traffic surface. */
+    mount(root,context){return controller.mount(root,context)},
+    /** Update the active Traffic context. */
+    update(context){return controller.update(context)},
+    /** Dispose the active Traffic surface. */
+    dispose(){return controller.dispose()}
+  };
+}`;
 await mkdir(dirname(output), { recursive: true });
 await build({
   entryPoints: [resolve("src/entrypoint.tsx")],
@@ -16,9 +28,7 @@ await build({
   jsx: "automatic",
   jsxImportSource: "preact",
   loader: { ".css": "text" },
-  footer: {
-    js: "export function activate(host){const controller=__xsecTrafficFrontend.activate(host);return{mount(root,context){return controller.mount(root,context)},update(context){return controller.update(context)},dispose(){return controller.dispose()}}}",
-  },
+  footer: { js: frontendFooter },
   legalComments: "none",
   minifyIdentifiers: false,
   minifySyntax: true,
