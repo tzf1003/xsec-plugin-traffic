@@ -9,8 +9,9 @@ const activateDocumentation = `/**
  * @returns {object} Explicit mount, update, and dispose lifecycle delegates.
  */`;
 
-/** Build the explicit Traffic lifecycle exported by the generated frontend. */
-function activate(host){
+// Factory reads this boundary statically, so preserve the named lifecycle source.
+const frontendFooter = `${activateDocumentation}
+export function activate(host){
   const controller=__xsecTrafficFrontend.activate(host);
   return{
     /**
@@ -27,10 +28,7 @@ function activate(host){
     /** Dispose subscriptions, rendered content, and retained surface state. */
     dispose(){return controller.dispose()}
   };
-}
-
-// Factory reads this boundary statically, so preserve the named lifecycle source.
-const frontendFooter = `${activateDocumentation}\nexport ${activate.toString()}`;
+}`;
 await mkdir(dirname(output), { recursive: true });
 await build({
   entryPoints: [resolve("src/entrypoint.tsx")],
