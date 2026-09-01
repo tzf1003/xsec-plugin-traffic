@@ -39,6 +39,9 @@ Before publishing a Beta source revision, run `pnpm verify` and validate the
 declared plugin directory with the XSEC Desktop release tooling. The published
 source revision must include the generated frontend artifact. Factory records
 the exact Beta and Stable source revisions with the immutable release.
+For Stable publication, deterministically reproduce the same release and
+generated frontend artifact, then pass Desktop smoke tests on Linux, Windows,
+macOS ARM, and macOS Intel.
 
 Marketplace artifacts, release indexes, signatures, and Factory adoption proof
 remain in [tzf1003/xsec-plugins](https://github.com/tzf1003/xsec-plugins).
