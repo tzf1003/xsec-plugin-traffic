@@ -60,7 +60,7 @@ export function useReplayResult({ host, resultId, state }: {
   }, [host, resultId, state.resultRevision]);
 }
 
-/** Track stacked replay layout and clamp pane proportions on mode changes. */
+/** Track whether the replay layout should stack at the current width. */
 export function useReplayLayout(state: ReplayState) {
   useEffect(() => {
     const element = state.exchangeRef.current;
