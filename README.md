@@ -51,8 +51,8 @@ git clone --no-checkout https://github.com/tzf1003/xsec-plugin-traffic.git "$ver
 git -C "$verification_root" checkout --detach <candidate-source-sha>
 cd "$verification_root"
 test -z "$(git status --porcelain --untracked-files=all)"
-node --version
-pnpm --version
+test "$(node --version)" = "v24.19.0"
+test "$(pnpm --version)" = "10.34.5"
 pnpm install --frozen-lockfile
 pnpm verify
 git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
