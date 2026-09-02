@@ -10,7 +10,7 @@ const frontendPath = "plugins/com.xsec.workspace.traffic/com.xsec.desktop/fronte
 async function verifyManifestCapabilities(): Promise<void> {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const extension = manifest.extensions["com.xsec.desktop"];
-  assert.equal(manifest.version, "1.3.0");
+  assert.equal(manifest.version, "1.3.1");
   assert.equal(extension.engines.pluginApi, "^1.4.0");
   assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });

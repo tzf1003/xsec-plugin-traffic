@@ -7,7 +7,7 @@ import { useReplay } from "./use-replay";
 
 type ReplayModel = ReturnType<typeof useReplay>;
 
-/** Format the replay response status, duration, and size summary. */
+/** Format the replay response status with an optional duration. */
 function replayResponseMeta(model: ReplayModel): string {
   if (!model.selected) return "尚未发送";
   if (model.selected.status === "failed") return "发送失败";
