@@ -43,6 +43,7 @@ jobs:
       - name: Validate the registered source manifest, release identity, and whitespace
         env:
           PLUGIN_ID: com.xsec.workspace.traffic
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
           [[ "$PLUGIN_ID" =~ ^com\.xsec\.[a-z0-9.-]+$ ]] || { echo "plugin_id is not a first-party XSEC identifier." >&2; exit 1; }
@@ -69,4 +70,7 @@ jobs:
           if (!relativeTarget || relativeTarget === ".." || relativeTarget.startsWith("../") || isAbsolute(relativeTarget)) process.exit(1);
           if (!statSync(frontendTarget).isFile()) process.exit(1);
           NODE
-          git diff --check HEAD^
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Event base is not a commit SHA." >&2; exit 1; }
+          [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] || { echo "Event base commit is unavailable." >&2; exit 1; }
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git diff --check "$BASE_SHA"..HEAD
