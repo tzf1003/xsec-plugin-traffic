@@ -34,6 +34,39 @@ jobs:
 
   source-preflight:
     needs: manifest
-    uses: tzf1003/xsec-plugins/.github/workflows/first-party-source-preflight.yml@bb9898f61bdea92f594dfe0753f632b9fc36b6ca
-    with:
-      plugin_id: com.xsec.workspace.traffic
+    name: source-preflight / source-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Validate the registered source manifest, release identity, and whitespace
+        env:
+          PLUGIN_ID: com.xsec.workspace.traffic
+        run: |
+          set -euo pipefail
+          [[ "$PLUGIN_ID" =~ ^com\.xsec\.[a-z0-9.-]+$ ]] || { echo "plugin_id is not a first-party XSEC identifier." >&2; exit 1; }
+          manifest="plugins/${PLUGIN_ID}/plugin.json"
+          [ -f "$manifest" ] || { echo "Registered source manifest is missing." >&2; exit 1; }
+          node --input-type=module - "$manifest" "$PLUGIN_ID" <<'NODE'
+          import { readFileSync, realpathSync, statSync } from "node:fs";
+          import { dirname, isAbsolute, relative, resolve } from "node:path";
+          const [manifestPath, expectedId] = process.argv.slice(2);
+          const pluginRoot = realpathSync(resolve(dirname(manifestPath)));
+          const manifestTarget = realpathSync(resolve(manifestPath));
+          if (dirname(manifestTarget) !== pluginRoot || !statSync(manifestTarget).isFile()) process.exit(1);
+          const manifest = JSON.parse(readFileSync(manifestTarget, "utf8"));
+          if (manifest.name !== expectedId || typeof manifest.version !== "string" || !manifest.version) process.exit(1);
+          const desktop = manifest.extensions?.["com.xsec.desktop"];
+          if (!desktop || typeof desktop !== "object" || Array.isArray(desktop)) process.exit(1);
+          const engines = desktop.engines;
+          if (!engines || typeof engines !== "object" || Array.isArray(engines)) process.exit(1);
+          if (engines.xsec !== ">=0.1.0" || engines.pluginApi !== "^1.4.0") process.exit(1);
+          const frontend = desktop.entrypoints?.frontend;
+          if (typeof frontend !== "string" || !frontend.startsWith("./")) process.exit(1);
+          const frontendTarget = realpathSync(resolve(pluginRoot, frontend));
+          const relativeTarget = relative(pluginRoot, frontendTarget);
+          if (!relativeTarget || relativeTarget === ".." || relativeTarget.startsWith("../") || isAbsolute(relativeTarget)) process.exit(1);
+          if (!statSync(frontendTarget).isFile()) process.exit(1);
+          NODE
+          git diff --check HEAD^
