@@ -50,6 +50,7 @@ set -euo pipefail
 verification_root="$(mktemp -d)"
 candidate_source_sha="<candidate-source-sha>"
 artifact="plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js"
+candidate_source_sha="$(printf '%s' "$candidate_source_sha" | tr '[:upper:]' '[:lower:]')"
 [[ "$candidate_source_sha" =~ ^[0-9a-f]{40}$ ]] || {
   echo "candidate_source_sha must be a 40-character commit SHA." >&2
   exit 1
