@@ -49,11 +49,19 @@ jobs:
           manifest="plugins/${PLUGIN_ID}/plugin.json"
           [ -f "$manifest" ] || { echo "Registered source manifest is missing." >&2; exit 1; }
           node --input-type=module - "$manifest" "$PLUGIN_ID" <<'NODE'
-          import { readFileSync } from "node:fs";
+          import { existsSync, readFileSync, statSync } from "node:fs";
+          import { dirname, isAbsolute, relative, resolve } from "node:path";
           const [manifestPath, expectedId] = process.argv.slice(2);
           const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
           if (manifest.name !== expectedId || typeof manifest.version !== "string" || !manifest.version) process.exit(1);
           const desktop = manifest.extensions?.["com.xsec.desktop"];
           if (!desktop || typeof desktop !== "object" || !desktop.engines || typeof desktop.engines !== "object") process.exit(1);
+          const frontend = desktop.entrypoints?.frontend;
+          if (typeof frontend !== "string" || !frontend.startsWith("./")) process.exit(1);
+          const pluginRoot = resolve(dirname(manifestPath));
+          const frontendTarget = resolve(pluginRoot, frontend);
+          const relativeTarget = relative(pluginRoot, frontendTarget);
+          if (!relativeTarget || relativeTarget === ".." || relativeTarget.startsWith("../") || isAbsolute(relativeTarget)) process.exit(1);
+          if (!existsSync(frontendTarget) || !statSync(frontendTarget).isFile()) process.exit(1);
           NODE
           git diff --check HEAD^
