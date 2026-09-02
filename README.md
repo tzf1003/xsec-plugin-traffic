@@ -46,6 +46,7 @@ from the exact candidate commit. Source verification is defined by
 must reproduce the committed frontend without a diff:
 
 ```bash
+set -euo pipefail
 verification_root="$(mktemp -d)"
 candidate_source_sha="<candidate-source-sha>"
 artifact="plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js"
