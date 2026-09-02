@@ -46,16 +46,20 @@ from the exact candidate commit. Source verification is defined by
 must reproduce the committed frontend without a diff:
 
 ```bash
+set -euo pipefail
 verification_root="$(mktemp -d)"
+candidate_source_sha="<candidate-source-sha>"
+artifact="plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js"
 git clone --no-checkout https://github.com/tzf1003/xsec-plugin-traffic.git "$verification_root"
-git -C "$verification_root" checkout --detach <candidate-source-sha>
+git -C "$verification_root" checkout --detach "$candidate_source_sha"
+git -C "$verification_root" show "${candidate_source_sha}:${artifact}" >/dev/null
 cd "$verification_root"
 test -z "$(git status --porcelain --untracked-files=all)"
 test "$(node --version)" = "v24.19.0"
 test "$(pnpm --version)" = "10.34.5"
 pnpm install --frozen-lockfile
 pnpm verify
-git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
+git diff --exit-code -- "$artifact"
 test -z "$(git status --porcelain --untracked-files=all)"
 ```
 

@@ -33,7 +33,7 @@ function applyReplayFeedback(response: ReplayResult, state: ReplayState) {
   return feedback;
 }
 
-/** Refresh history after replay and retain a recorded attempt when refresh fails. */
+/** Refresh history after replay and report refresh failures. */
 async function reconcileReplayResponse(options: {
   response: ReplayResult; state: ReplayState;
   refreshHistory: (selectLatest: boolean) => Promise<ReplayAttempt[]>;
