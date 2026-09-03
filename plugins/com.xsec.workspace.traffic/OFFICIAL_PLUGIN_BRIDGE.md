@@ -7,6 +7,9 @@ source of truth.
 
 ## 运行边界
 
+- 包根清单使用 Agent Plugins v1 与 `com.xsec.desktop` schema v2。抓包流量目前是纯
+  Host 包：不声明 `agentTools`、`mcp.json` 或 portable Skill，所有前端方法仍经 Desktop
+  capability 与会话绑定校验。
 - 插件源码在仓库 `src/`，构建结果是清单声明的单文件 ESM
   `com.xsec.desktop/frontend/index.js`。
 - 流量列表、完整筛选、请求/响应详情、独立详情、重放编辑器与设置页均由插件前端
@@ -17,6 +20,9 @@ source of truth.
   提示查看最新流量。
 - 重放报文沿用后端 2 MiB 原始请求上限。仅官方抓包插件的
   `xsec.traffic.replay` 获得相应的精确消息大小额度，其余 RPC 保持默认额度。
+
+若以后引入 portable MCP，必须先由 Desktop 提供独立的脱敏分析输入契约。MCP 不得读取
+代理、原始请求/响应、会话身份、凭据或重放控制面。
 
 修改前端后运行 `pnpm verify`，并提交更新后的生成制品。Desktop 桥接变更还需要
 运行相关 Vitest、Plugin SDK 校验、Desktop typecheck 和 Rust 重放边界测试。
