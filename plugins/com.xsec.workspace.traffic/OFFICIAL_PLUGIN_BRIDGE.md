@@ -14,8 +14,9 @@ source of truth.
   `com.xsec.desktop/frontend/index.js`。
 - 流量列表、完整筛选、请求/响应详情、独立详情、重放编辑器与设置页均由插件前端
   渲染；旧版 Desktop React 工作台不参与运行。
-- Desktop 只提供带 capability 与 manifest 指定 binding 校验的 Host RPC：读取当前会话流量、
-  读取重放历史、执行重放、添加会话引用、打开插件工作区工具，以及插件设置数据。
+- Desktop 只提供带 capability 与 manifest 指定 binding 校验的 Host RPC：流量、重放和
+  会话引用绑定当前会话；打开工作区工具绑定当前 context；设置、CA 与被动规则绑定
+  当前 plugin。
 - `xsec.traffic.persisted` 仅转发当前宿主绑定会话的入库事件；前端据此刷新当前页或
   提示查看最新流量。
 - 重放报文沿用后端 2 MiB 原始请求上限。仅官方抓包插件的
