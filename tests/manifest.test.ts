@@ -5,17 +5,26 @@ import { test } from "node:test";
 
 const manifestPath = "plugins/com.xsec.workspace.traffic/plugin.json";
 const frontendPath = "plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js";
+const packagePath = "package.json";
+const catalogManifestPath = "plugins/com.xsec.workspace.traffic/.codex-plugin/plugin.json";
 
 /** Verify the Traffic manifest's capability and RPC declarations. */
 async function verifyManifestCapabilities(): Promise<void> {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const extension = manifest.extensions["com.xsec.desktop"];
-  assert.equal(manifest.version, "1.3.1");
+  assert.equal(manifest.version, "2.0.0");
+  assert.equal(extension.schemaVersion, 2);
+  const sourcePackage = JSON.parse(await readFile(packagePath, "utf8"));
+  const catalogManifest = JSON.parse(await readFile(catalogManifestPath, "utf8"));
+  assert.equal(sourcePackage.version, manifest.version);
+  assert.equal(catalogManifest.name, manifest.name);
+  assert.equal(catalogManifest.version, manifest.version);
   assert.equal(extension.engines.pluginApi, "^1.4.0");
   assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.reference.add"], { capability: "workspace.composer.write", binding: "session" });
   assert.deepEqual(extension.frontendApi.methods["xsec.workspace.tool.open"], { capability: "workspace.tool.open", binding: "context" });
+  assert.equal(extension.contributes.agentTools, undefined);
 }
 
 /** Verify every restored Traffic surface remains contributed and activated. */
