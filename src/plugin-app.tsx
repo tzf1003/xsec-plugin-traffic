@@ -7,8 +7,7 @@ import { SettingsPage } from "./settings/settings-page";
 
 /** Derive a stable render key from the active workspace-tool context. */
 function workspaceInstanceKey(context: WorkspaceToolContext): string {
-  const session = context.workspace.session?.session_id ?? context.workspace.binding?.sessionId ?? "unbound";
-  return `${session}:${context.tool.entityId ?? context.tool.id}`;
+  return `${context.surface.bindingRevision}:${context.tool.entityId ?? context.tool.id}`;
 }
 
 /** Render the plugin app component. */

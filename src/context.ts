@@ -32,16 +32,16 @@ function parseSettings(root: Record<string, unknown>): SettingsContext {
   };
 }
 
-/** Parse tool, workspace, binding, session, and optional entity metadata. */
+/** Parse public display state; traffic data is always retrieved through Host RPC. */
 function parseWorkspace(root: Record<string, unknown>): WorkspaceToolContext {
   const tool = object(root.tool, "工作区工具");
   const workspace = object(root.workspace, "工作区绑定");
-  const binding = workspace.binding === undefined ? undefined : object(workspace.binding, "会话绑定");
-  const session = workspace.session == null ? null : object(workspace.session, "会话");
+  const surface = object(root.surface, "工作区表面");
   const entityId = tool.entityId === undefined ? {} : { entityId: requiredString(tool.entityId, "实体 ID") };
   return {
     kind: "workspace-tool",
     visible: root.visible !== false,
+    surface: { bindingRevision: requiredString(surface.bindingRevision, "表面版本") },
     tool: {
       id: requiredString(tool.id, "工具实例 ID"),
       kind: requiredString(tool.kind, "工具类型"),
@@ -52,15 +52,6 @@ function parseWorkspace(root: Record<string, unknown>): WorkspaceToolContext {
       mode: workspace.mode === "observe" ? "observe" : "interactive",
       dock: workspace.dock === "bottom" ? "bottom" : "side",
       canAddComposerReference: workspace.canAddComposerReference === true,
-      session: session ? { session_id: typeof session.session_id === "string" ? session.session_id : undefined } : null,
-      binding: binding ? { sessionId: typeof binding.sessionId === "string" ? binding.sessionId : null } : undefined,
     },
   };
-}
-
-/** Resolve the active traffic session identifier from session or binding metadata. */
-export function sessionId(context: WorkspaceToolContext): string {
-  const value = context.workspace.session?.session_id ?? context.workspace.binding?.sessionId;
-  if (!value) throw new Error("当前抓包插件没有绑定会话");
-  return value;
 }
