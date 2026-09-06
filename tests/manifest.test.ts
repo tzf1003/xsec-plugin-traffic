@@ -13,15 +13,15 @@ const sourcePreflightPath = ".github/workflows/ci.yml";
 async function verifyManifestCapabilities(): Promise<void> {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const extension = manifest.extensions["com.xsec.desktop"];
-  assert.equal(manifest.version, "2.1.2");
+  assert.equal(manifest.version, "2.1.3");
   assert.equal(extension.schemaVersion, 2);
   const sourcePackage = JSON.parse(await readFile(packagePath, "utf8"));
   const catalogManifest = JSON.parse(await readFile(catalogManifestPath, "utf8"));
   assert.equal(sourcePackage.version, manifest.version);
   assert.equal(catalogManifest.name, manifest.name);
   assert.equal(catalogManifest.version, manifest.version);
-  assert.equal(extension.engines.pluginApi, "^1.4.0");
-  assert.match(await readFile(sourcePreflightPath, "utf8"), /engines\.pluginApi !== "\^1\.4\.0"/u);
+  assert.equal(extension.engines.pluginApi, "^1.5.0");
+  assert.match(await readFile(sourcePreflightPath, "utf8"), /engines\.pluginApi !== "\^1\.5\.0"/u);
   assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.payload.open"], { capability: "workspace.session.read", binding: "session" });
