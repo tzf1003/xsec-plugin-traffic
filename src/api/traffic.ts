@@ -1,5 +1,6 @@
 import type { PluginHost, ReplayResult, TrafficDetail, TrafficFilter, TrafficPage } from "../types";
 import { loggedAction } from "../logging";
+import { openTrafficPayload } from "./traffic-payload";
 import { replayAttempts, replayResult, trafficDetail, trafficPage } from "./traffic-parse";
 
 const PAGE_SIZE = 100;
@@ -16,7 +17,9 @@ export async function listTraffic(
 
 /** Load traffic through the host boundary. */
 export async function getTraffic(host: PluginHost, flowId: string): Promise<TrafficDetail> {
-  return trafficDetail(await host.request("xsec.traffic.get", { flowId }));
+  const detail = trafficDetail(await host.request("xsec.traffic.get", { flowId }));
+  const payload = await openTrafficPayload(host, flowId);
+  return payload === undefined ? detail : { ...detail, payload };
 }
 
 /** Load replay attempts through the host boundary. */
