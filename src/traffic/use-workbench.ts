@@ -91,7 +91,6 @@ export function useWorkbench(host: PluginHost, context: WorkspaceToolContext) {
     selectedDetail: state.detail?.flow_id === state.selectedId ? state.detail : null,
     activeFilters: activeFilterCount(state.filter),
     canAddReference: context.workspace.canAddComposerReference === true,
-    sessionId: context.workspace.session?.session_id ?? context.workspace.binding?.sessionId ?? "",
   };
 }
 
