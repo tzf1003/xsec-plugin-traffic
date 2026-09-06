@@ -7,6 +7,7 @@ const manifestPath = "plugins/com.xsec.workspace.traffic/plugin.json";
 const frontendPath = "plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js";
 const packagePath = "package.json";
 const catalogManifestPath = "plugins/com.xsec.workspace.traffic/.codex-plugin/plugin.json";
+const sourcePreflightPath = ".github/workflows/ci.yml";
 
 /** Verify the Traffic manifest's capability and RPC declarations. */
 async function verifyManifestCapabilities(): Promise<void> {
@@ -20,6 +21,7 @@ async function verifyManifestCapabilities(): Promise<void> {
   assert.equal(catalogManifest.name, manifest.name);
   assert.equal(catalogManifest.version, manifest.version);
   assert.equal(extension.engines.pluginApi, "^1.5.0");
+  assert.match(await readFile(sourcePreflightPath, "utf8"), /engines\.pluginApi !== "\^1\.5\.0"/u);
   assert.deepEqual(Object.keys(extension.permissions).sort(), ["pluginData.read", "pluginData.write", "workspace.composer.write", "workspace.session.read", "workspace.session.write", "workspace.tool.open"]);
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.replay"], { capability: "workspace.session.write", binding: "session" });
   assert.deepEqual(extension.frontendApi.methods["xsec.traffic.payload.open"], { capability: "workspace.session.read", binding: "session" });
