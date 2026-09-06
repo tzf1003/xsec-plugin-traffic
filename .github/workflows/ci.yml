@@ -26,11 +26,11 @@ jobs:
       - name: Verify source and generated frontend
         run: pnpm verify
       - name: Require generated frontend to match source
-        run: git diff --exit-code -- plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
+        run: git diff --exit-code -- com.xsec.desktop/frontend/index.js
       - name: Require the dual plugin manifests
         run: |
-          test -f plugins/com.xsec.workspace.traffic/plugin.json
-          test -f plugins/com.xsec.workspace.traffic/.codex-plugin/plugin.json
+          test -f plugin.json
+          test -f .codex-plugin/plugin.json
 
   source-preflight:
     needs: manifest
@@ -40,15 +40,20 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - name: Validate the registered source manifest, release identity, and whitespace
+      - name: Validate the root plugin package, release identity, and whitespace
         env:
           PLUGIN_ID: com.xsec.workspace.traffic
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
           [[ "$PLUGIN_ID" =~ ^com\.xsec\.[a-z0-9.-]+$ ]] || { echo "plugin_id is not a first-party XSEC identifier." >&2; exit 1; }
-          manifest="plugins/${PLUGIN_ID}/plugin.json"
-          [ -f "$manifest" ] || { echo "Registered source manifest is missing." >&2; exit 1; }
+          manifest="plugin.json"
+          [ -f "$manifest" ] || { echo "Root plugin manifest is missing." >&2; exit 1; }
+          [ -f ".codex-plugin/plugin.json" ] || { echo "Root Codex plugin manifest is missing." >&2; exit 1; }
+          [ ! -e "plugins/${PLUGIN_ID}/plugin.json" ] || {
+            echo "Nested plugin packages are not supported; the Git root must be the package root." >&2
+            exit 1
+          }
           node --input-type=module - "$manifest" "$PLUGIN_ID" <<'NODE'
           import { readFileSync, realpathSync, statSync } from "node:fs";
           import { dirname, isAbsolute, relative, resolve } from "node:path";

@@ -10,7 +10,7 @@ workbench. Its Preact source lives in `src/`; `pnpm build` bundles it into the
 single self-contained ESM artifact declared by the manifest:
 
 ```text
-plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js
+com.xsec.desktop/frontend/index.js
 ```
 
 The workbench, standalone detail, replay editor, filters and plugin settings are
@@ -49,7 +49,7 @@ must reproduce the committed frontend without a diff:
 set -euo pipefail
 verification_root="$(mktemp -d)"
 candidate_source_sha="<candidate-source-sha>"
-artifact="plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js"
+artifact="com.xsec.desktop/frontend/index.js"
 candidate_source_sha="$(printf '%s' "$candidate_source_sha" | tr '[:upper:]' '[:lower:]')"
 [[ "$candidate_source_sha" =~ ^[0-9a-f]{40}$ ]] || {
   echo "candidate_source_sha must be a 40-character commit SHA." >&2

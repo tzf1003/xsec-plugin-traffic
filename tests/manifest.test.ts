@@ -3,17 +3,17 @@ import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
 
-const manifestPath = "plugins/com.xsec.workspace.traffic/plugin.json";
-const frontendPath = "plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js";
+const manifestPath = "plugin.json";
+const frontendPath = "com.xsec.desktop/frontend/index.js";
 const packagePath = "package.json";
-const catalogManifestPath = "plugins/com.xsec.workspace.traffic/.codex-plugin/plugin.json";
+const catalogManifestPath = ".codex-plugin/plugin.json";
 const sourcePreflightPath = ".github/workflows/ci.yml";
 
 /** Verify the Traffic manifest's capability and RPC declarations. */
 async function verifyManifestCapabilities(): Promise<void> {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const extension = manifest.extensions["com.xsec.desktop"];
-  assert.equal(manifest.version, "2.1.0");
+  assert.equal(manifest.version, "2.1.1");
   assert.equal(extension.schemaVersion, 2);
   const sourcePackage = JSON.parse(await readFile(packagePath, "utf8"));
   const catalogManifest = JSON.parse(await readFile(catalogManifestPath, "utf8"));

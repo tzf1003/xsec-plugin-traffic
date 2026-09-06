@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-const output = resolve("plugins/com.xsec.workspace.traffic/com.xsec.desktop/frontend/index.js");
+const output = resolve("com.xsec.desktop/frontend/index.js");
 const activateDocumentation = `/**
  * Activate the Traffic frontend and expose its host lifecycle.
  * @param {object} host Desktop host bridge for the active plugin surface.
