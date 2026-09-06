@@ -12,13 +12,12 @@ export type PluginHost = {
 export type WorkspaceToolContext = {
   kind: "workspace-tool";
   visible: boolean;
+  surface: { bindingRevision: string };
   tool: { id: string; kind: string; title: string; entityId?: string };
   workspace: {
     mode: "interactive" | "observe";
     dock: "side" | "bottom";
     canAddComposerReference?: boolean;
-    session?: { session_id?: string } | null;
-    binding?: { sessionId?: string | null };
   };
 };
 
